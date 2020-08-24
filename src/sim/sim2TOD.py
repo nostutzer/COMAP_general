@@ -6,7 +6,6 @@ import time
 import shutil
 from tqdm import trange
 
-
 class Sim2TOD:
     def __init__(self, cube_filename, tod_in_filename, tod_out_filename):
         self.cube_filename = cube_filename  # Filepath of simulated cube.
@@ -45,7 +44,7 @@ class Sim2TOD:
     
     def make_outfile(self):
         """
-        Create a copy of the input level1 file, such that we can simply replace the TOD with simualted data later.
+        Create a copy of the input level1 file, such that we can simply replace the TOD with simulated data later.
         """
         shutil.copyfile(self.tod_in_filename, self.tod_out_filename)
 
@@ -78,7 +77,7 @@ class Sim2TOD:
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
             # Update tod_sim values.
-            self.tod_sim[i,:,:,:] += np.nanmean(np.array(tod[i,:,:,:]), axis=2)[:,:,None] * cube[:, :, pixvec] / tsys
+            self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec] / tsys
         
         with h5py.File(self.tod_out_filename, "w") as outfile:  # Write new sim-data to file.
             outfile["/spectrometer/tod"] = self.tod_sim
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     cube_filename = cube_path + "cube_real.npy"
     tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-05/"
     tod_in_filename = tod_in_path + "comp_comap-0013736-2020-05-27-205948.hd5"
-    tod_out_path = "/mn/stornext/d16/cmbco/comap/jonas/comap_general/sim/"
+    tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/sim/simTOD/"
     tod_out_filename = tod_out_path + "tod_sim.hd5"
 
     sim2tod = Sim2TOD(cube_filename, tod_in_filename, tod_out_filename)
