@@ -5,6 +5,7 @@ import WCS
 import time
 import shutil
 from tqdm import trange
+import sys
 
 class Sim2TOD:
     def __init__(self, cube_filename, tod_in_filename, tod_out_filename):
@@ -13,24 +14,24 @@ class Sim2TOD:
         self.tod_out_filename = tod_out_filename  # Filepath of simulated output level1 file.
         self.nside = 120   # Number of pixels in each direction.
         self.dpix = 2.0/60.0  # Pixel resolution in degrees (here, 2 arcminutes)
-        self.fieldcent = [170.0, 52.5]  # Center position of pixel-image, in degrees of ra/dec.
+        self.fieldcent = [226, 55]  # Center position of pixel-image, in degrees of ra/dec.
 
     def run(self):
         print("Loading Cube"); t0 = time.time()
         self.load_cube()
-        print(time.time()-t0)
+        print("Time: ", time.time()-t0, " sec")
         print("Copying outfile"); t0 = time.time()
         self.make_outfile()
-        print(time.time()-t0)
+        print("Time: ", time.time()-t0, " sec")
         print("Loading TOD"); t0 = time.time()        
         self.load_tod()
-        print(time.time()-t0)
+        print("Time: ", time.time()-t0, " sec")
         print("Calculating Tsys"); t0 = time.time()        
         self.calc_tsys()
-        print(time.time()-t0)
+        print("Time: ", time.time()-t0, " sec")
         print("Writing sim-data to TOD"); t0 = time.time()
         self.write_sim()
-        print(time.time()-t0)
+        print("Time: ", time.time()-t0, " sec")
 
     def load_cube(self):
         """
@@ -53,6 +54,7 @@ class Sim2TOD:
         Load the TOD and other relevant data from the level1 file into memory.
         """
         infile        = h5py.File(self.tod_in_filename, "r")
+        
         self.tod      = np.array(infile["/spectrometer/tod"])
         self.freqs    = np.array(infile["/spectrometer/frequency"])
         self.tod_time = np.array(infile["/spectrometer/MJD"])
@@ -70,25 +72,34 @@ class Sim2TOD:
     def calc_tsys(self):
         self.tsys = 55.0  # Hard-coded Tsys value. Needs to be calculated.
 
-
     def write_sim(self):
-        nside, dpix, fieldcent, dec, ra, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.dec, self.ra, self.tod, self.cube, self.tsys, self.nfeeds
+        nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
+        print(nside, dpix, fieldcent)
+        print(nside * dpix / 2, np.array(fieldcent) - nside * dpix / 2, np.array(fieldcent) + nside * dpix / 2)
+        print(np.max(ra[:, 0]), np.min(ra[:, 0]))
+        print(np.max(dec[:, 0]), np.min(dec[:, 0]))
+
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
             # Update tod_sim values.
-            self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec] / tsys
+            self.tod_sim[i, :, :, :] += 0#np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec != -1] / tsys
+            print(np.any(pixvec == -1))
         
         with h5py.File(self.tod_out_filename, "w") as outfile:  # Write new sim-data to file.
             outfile["/spectrometer/tod"] = self.tod_sim
+            outfile["/spectrometer/pixel_pointing/pixel_ra"] = ra
+            outfile["/spectrometer/pixel_pointing/pixel_dec"] = dec
+            outfile["/spectrometer/pixel_pointing/pixel_idx"] = pixvec
+         
 
 
 
 if __name__ == "__main__":
     cube_path = "/mn/stornext/d16/cmbco/comap/protodir/"
     cube_filename = cube_path + "cube_real.npy"
-    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-05/"
-    tod_in_filename = tod_in_path + "comp_comap-0013736-2020-05-27-205948.hd5"
+    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-07/"
+    tod_in_filename = tod_in_path + "comap-0015330-2020-07-31-040632.hd5"
     tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/"
     tod_out_filename = tod_out_path + "tod_sim.hd5"
 
