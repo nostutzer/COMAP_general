@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cube_filename = cube_path + "cube_real.npy"
     tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-05/"
     tod_in_filename = tod_in_path + "comp_comap-0013736-2020-05-27-205948.hd5"
-    tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/sim/simTOD/"
+    tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/"
     tod_out_filename = tod_out_path + "tod_sim.hd5"
 
     sim2tod = Sim2TOD(cube_filename, tod_in_filename, tod_out_filename)
