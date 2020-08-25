@@ -83,7 +83,7 @@ class Sim2TOD:
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
             # Update tod_sim values.
-            self.tod_sim[i, :, :, :] += 0#np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec != -1] / tsys
+            self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec] / tsys
             print(np.any(pixvec == -1))
         
         with h5py.File(self.tod_out_filename, "w") as outfile:  # Write new sim-data to file.
@@ -98,8 +98,8 @@ class Sim2TOD:
 if __name__ == "__main__":
     cube_path = "/mn/stornext/d16/cmbco/comap/protodir/"
     cube_filename = cube_path + "cube_real.npy"
-    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-07/"
-    tod_in_filename = tod_in_path + "comap-0015330-2020-07-31-040632.hd5"
+    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-08/"
+    tod_in_filename = tod_in_path + "comap-0015354-2020-08-01-001323.hd5"
     tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/"
     tod_out_filename = tod_out_path + "tod_sim.hd5"
 
