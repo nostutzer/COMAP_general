@@ -5,7 +5,7 @@ import WCS
 import time
 import shutil
 from tqdm import trange
-import sys
+import sys 
 
 class Sim2TOD:
     def __init__(self, cube_filename, tod_in_filename, tod_out_filename):
@@ -14,7 +14,8 @@ class Sim2TOD:
         self.tod_out_filename = tod_out_filename  # Filepath of simulated output level1 file.
         self.nside = 120   # Number of pixels in each direction.
         self.dpix = 2.0/60.0  # Pixel resolution in degrees (here, 2 arcminutes)
-        self.fieldcent = [226, 55]  # Center position of pixel-image, in degrees of ra/dec.
+        self.fieldcent = [226, 55]  # Center position of pixel-image, in degrees of ra/dec. CO6
+        #self.fieldcent = [170, 52.5]  # Center position of pixel-image, in degrees of ra/dec. CO7
 
     def run(self):
         print("Loading Cube"); t0 = time.time()
@@ -39,6 +40,8 @@ class Sim2TOD:
         """
         cube = np.load(cube_filename)
         cubeshape = cube.shape
+        cube[::10, :, :] = np.max(cube)
+        cube[:, ::10, :] = np.max(cube)
         cube = cube.reshape(cubeshape[0]*cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.transpose(1,2,0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
         self.cube = cube
@@ -78,30 +81,32 @@ class Sim2TOD:
         print(nside * dpix / 2, np.array(fieldcent) - nside * dpix / 2, np.array(fieldcent) + nside * dpix / 2)
         print(np.max(ra[:, 0]), np.min(ra[:, 0]))
         print(np.max(dec[:, 0]), np.min(dec[:, 0]))
-
+        pixvec = np.zeros_like(dec, dtype = int)
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
-            pixvec = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
+            pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
             # Update tod_sim values.
-            self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec] / tsys
+            #self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec[i, :]] / tsys
+            self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
             print(np.any(pixvec == -1))
-        
         with h5py.File(self.tod_out_filename, "w") as outfile:  # Write new sim-data to file.
             outfile["/spectrometer/tod"] = self.tod_sim
             outfile["/spectrometer/pixel_pointing/pixel_ra"] = ra
             outfile["/spectrometer/pixel_pointing/pixel_dec"] = dec
             outfile["/spectrometer/pixel_pointing/pixel_idx"] = pixvec
-         
-
-
+        
 
 if __name__ == "__main__":
     cube_path = "/mn/stornext/d16/cmbco/comap/protodir/"
     cube_filename = cube_path + "cube_real.npy"
-    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-08/"
-    tod_in_filename = tod_in_path + "comap-0015354-2020-08-01-001323.hd5"
+    
+    #tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-08/"
+    #tod_in_filename = tod_in_path + "comap-0015354-2020-08-01-001323.hd5"
+    tod_in_path = "/mn/stornext/d16/cmbco/comap/pathfinder/ovro/2020-07/"
+    tod_in_filename = tod_in_path + "comap-0015330-2020-07-31-040632.hd5"
+    
     tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/"
-    tod_out_filename = tod_out_path + "tod_sim.hd5"
+    tod_out_filename = tod_out_path + "tod_sim_15330.hd5"
 
     sim2tod = Sim2TOD(cube_filename, tod_in_filename, tod_out_filename)
     sim2tod.run()

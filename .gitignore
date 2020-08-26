@@ -2,6 +2,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,c++,c,fortran,images,tex,data
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,c++,c,fortran,images,tex,data
 
+# ignore hdf5 files
+*.hdf
+*.h5
+*.hdf5
+*.he5
+
 ### C ###
 # Prerequisites
 *.d
