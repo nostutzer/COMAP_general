@@ -6,6 +6,7 @@ import time
 import shutil
 from tqdm import trange
 import sys 
+import argparse
 
 class Sim2TOD:
     def __init__(self, cube_filename, tod_in_filename, tod_out_filename):
@@ -34,6 +35,16 @@ class Sim2TOD:
         self.write_sim()
         print("Time: ", time.time()-t0, " sec")
 
+    def input(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-p", "--parameters", type = str, 
+                            help = """Full path and name to parameter file 
+                                    containing all needed info to add simulations to
+                                    l1 files.""")
+        args = parser.parse_args()
+        self.param_file = args.parameters
+    
+        
     def load_cube(self):
         """
         Read the simulated datacube into memory.
