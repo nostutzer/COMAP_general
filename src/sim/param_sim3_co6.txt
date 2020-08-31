@@ -4,18 +4,18 @@ IS_SIM                       = .false.
 SIM_TSYS                     = 40.d0
 
 # CES mod
-RUNLIST                      = '/mn/stornext/d16/cmbco/comap/protodir/runlist_default_co6.txt' 
-LEVEL1_DIR                   = '/mn/stornext/d16/cmbco/comap/pathfinder/ovro'
-LEVEL2_DIR                   = '/mn/stornext/d16/cmbco/comap/protodir/level2/Ka'
-LEVEL3_DIR                   = '/mn/stornext/d16/cmbco/comap/protodir/level3/Ka' 
+RUNLIST                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/runlist_sim2_co6.txt' 
+LEVEL1_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1'
+LEVEL2_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim'
+LEVEL3_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level3/Ka' 
 
 # tod2comap
-MAP_DIR			     = '/mn/stornext/d16/cmbco/comap/protodir/maps/'
-SIM_DIR                      = '/mn/stornext/d16/cmbco/comap/protodir/maps/sims/'
+MAP_DIR			             = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/'
+SIM_DIR                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sims/'
 CG_LIM                       = 1e-8
 MAP_NAME                     = 'map'
 SIM_NAME                     = 'sim'
-TARGET_NAME                  = 'all'
+TARGET_NAME                  = 'co6'
 COORDINATE_SYSTEM            = 'celestial' # 'celestial'/'horizontal'
 NUM_DET                      = 19
 OBSID_MAPS                   = .true.

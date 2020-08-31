@@ -1,0 +1,2065 @@
+  0 processing obsid      15330 (1/1)
+  Removing frequency with >10% NaNs --    15330    20   3       1
+  Removing frequency with >10% NaNs --    15330    20   3       2
+  Removing frequency with >10% NaNs --    15330    20   3       3
+  Removing frequency with >10% NaNs --    15330    20   3       4
+ Suppressing NaN warnings for the rest of this sideband
+  Removing frequency with >10% NaNs --    15330    20   4       1
+  Removing frequency with >10% NaNs --    15330    20   4       2
+  Removing frequency with >10% NaNs --    15330    20   4       3
+  Removing frequency with >10% NaNs --    15330    20   4       4
+ Suppressing NaN warnings for the rest of this sideband
+   Number of NaN elements in        15330  =            3  of       192648
+   0 -- disk read speed =     663.27 MB/sec
+ Starting analysis of scan     1533002
+ Time and duration (in mins) of scan:      59061.1720094   6.9164
+ Number of samples, observed patch:    20750  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533002
+ Scan mode is liss, so we remove both el- and az-templates     1533002
+ Making frequency mask     1533002
+ Found           90  spikes
+ Found            0  jumps
+ Found          538  anomalies
+ Found            4  edge spikes
+ OVERFLOW AVERTED           1           1     1533002
+ OVERFLOW AVERTED           1           2     1533002
+ OVERFLOW AVERTED           1           3     1533002
+ OVERFLOW AVERTED           1           4     1533002
+ OVERFLOW AVERTED           2           1     1533002
+ OVERFLOW AVERTED           2           2     1533002
+ OVERFLOW AVERTED           2           3     1533002
+ OVERFLOW AVERTED           2           4     1533002
+ OVERFLOW AVERTED           3           1     1533002
+ OVERFLOW AVERTED           3           2     1533002
+ OVERFLOW AVERTED           3           3     1533002
+ OVERFLOW AVERTED           3           4     1533002
+ OVERFLOW AVERTED           4           1     1533002
+ OVERFLOW AVERTED           4           2     1533002
+ OVERFLOW AVERTED           4           3     1533002
+ OVERFLOW AVERTED           4           4     1533002
+ OVERFLOW AVERTED           5           1     1533002
+ OVERFLOW AVERTED           5           2     1533002
+ OVERFLOW AVERTED           5           3     1533002
+ OVERFLOW AVERTED           5           4     1533002
+ OVERFLOW AVERTED           6           1     1533002
+ OVERFLOW AVERTED           6           2     1533002
+ OVERFLOW AVERTED           6           3     1533002
+ OVERFLOW AVERTED           6           4     1533002
+ OVERFLOW AVERTED           7           1     1533002
+ OVERFLOW AVERTED           7           2     1533002
+ OVERFLOW AVERTED           7           3     1533002
+ OVERFLOW AVERTED           7           4     1533002
+ OVERFLOW AVERTED           8           1     1533002
+ OVERFLOW AVERTED           8           2     1533002
+ OVERFLOW AVERTED           8           3     1533002
+ OVERFLOW AVERTED           8           4     1533002
+ OVERFLOW AVERTED           9           1     1533002
+ OVERFLOW AVERTED           9           2     1533002
+ OVERFLOW AVERTED           9           3     1533002
+ OVERFLOW AVERTED           9           4     1533002
+ OVERFLOW AVERTED          10           1     1533002
+ OVERFLOW AVERTED          10           2     1533002
+ OVERFLOW AVERTED          10           3     1533002
+ OVERFLOW AVERTED          10           4     1533002
+ OVERFLOW AVERTED          11           1     1533002
+ OVERFLOW AVERTED          11           2     1533002
+ OVERFLOW AVERTED          11           3     1533002
+ OVERFLOW AVERTED          11           4     1533002
+ OVERFLOW AVERTED          12           1     1533002
+ OVERFLOW AVERTED          12           2     1533002
+ OVERFLOW AVERTED          12           3     1533002
+ OVERFLOW AVERTED          12           4     1533002
+ OVERFLOW AVERTED          13           1     1533002
+ OVERFLOW AVERTED          13           2     1533002
+ OVERFLOW AVERTED          13           3     1533002
+ OVERFLOW AVERTED          13           4     1533002
+ OVERFLOW AVERTED          14           1     1533002
+ OVERFLOW AVERTED          14           2     1533002
+ OVERFLOW AVERTED          14           3     1533002
+ OVERFLOW AVERTED          14           4     1533002
+ OVERFLOW AVERTED          15           1     1533002
+ OVERFLOW AVERTED          15           2     1533002
+ OVERFLOW AVERTED          15           3     1533002
+ OVERFLOW AVERTED          15           4     1533002
+ OVERFLOW AVERTED          16           1     1533002
+ OVERFLOW AVERTED          16           2     1533002
+ OVERFLOW AVERTED          16           3     1533002
+ OVERFLOW AVERTED          16           4     1533002
+ OVERFLOW AVERTED          17           1     1533002
+ OVERFLOW AVERTED          17           2     1533002
+ OVERFLOW AVERTED          17           3     1533002
+ OVERFLOW AVERTED          17           4     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533002
+ Average acceptrate for scan:      1533002  0.000000000000000E+000
+ All channels masked! Scan:      1533002
+ Writing      1533002  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33002.h5
+ Starting analysis of scan     1533003
+ Time and duration (in mins) of scan:      59061.1769574   6.7498
+ Number of samples, observed patch:    20250  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533003
+ Scan mode is liss, so we remove both el- and az-templates     1533003
+ Making frequency mask     1533003
+ Found           95  spikes
+ Found            0  jumps
+ Found          509  anomalies
+ Found            4  edge spikes
+ OVERFLOW AVERTED           1           1     1533003
+ OVERFLOW AVERTED           1           2     1533003
+ OVERFLOW AVERTED           1           3     1533003
+ OVERFLOW AVERTED           1           4     1533003
+ OVERFLOW AVERTED           2           1     1533003
+ OVERFLOW AVERTED           2           2     1533003
+ OVERFLOW AVERTED           2           3     1533003
+ OVERFLOW AVERTED           2           4     1533003
+ OVERFLOW AVERTED           3           1     1533003
+ OVERFLOW AVERTED           3           2     1533003
+ OVERFLOW AVERTED           3           3     1533003
+ OVERFLOW AVERTED           3           4     1533003
+ OVERFLOW AVERTED           4           1     1533003
+ OVERFLOW AVERTED           4           2     1533003
+ OVERFLOW AVERTED           4           3     1533003
+ OVERFLOW AVERTED           4           4     1533003
+ OVERFLOW AVERTED           5           1     1533003
+ OVERFLOW AVERTED           5           2     1533003
+ OVERFLOW AVERTED           5           3     1533003
+ OVERFLOW AVERTED           5           4     1533003
+ OVERFLOW AVERTED           6           1     1533003
+ OVERFLOW AVERTED           6           2     1533003
+ OVERFLOW AVERTED           6           3     1533003
+ OVERFLOW AVERTED           6           4     1533003
+ OVERFLOW AVERTED           7           1     1533003
+ OVERFLOW AVERTED           7           2     1533003
+ OVERFLOW AVERTED           7           3     1533003
+ OVERFLOW AVERTED           7           4     1533003
+ OVERFLOW AVERTED           8           1     1533003
+ OVERFLOW AVERTED           8           2     1533003
+ OVERFLOW AVERTED           8           3     1533003
+ OVERFLOW AVERTED           8           4     1533003
+ OVERFLOW AVERTED           9           1     1533003
+ OVERFLOW AVERTED           9           2     1533003
+ OVERFLOW AVERTED           9           3     1533003
+ OVERFLOW AVERTED           9           4     1533003
+ OVERFLOW AVERTED          10           1     1533003
+ OVERFLOW AVERTED          10           2     1533003
+ OVERFLOW AVERTED          10           3     1533003
+ OVERFLOW AVERTED          10           4     1533003
+ OVERFLOW AVERTED          11           1     1533003
+ OVERFLOW AVERTED          11           2     1533003
+ OVERFLOW AVERTED          11           3     1533003
+ OVERFLOW AVERTED          11           4     1533003
+ OVERFLOW AVERTED          12           1     1533003
+ OVERFLOW AVERTED          12           2     1533003
+ OVERFLOW AVERTED          12           3     1533003
+ OVERFLOW AVERTED          12           4     1533003
+ OVERFLOW AVERTED          13           1     1533003
+ OVERFLOW AVERTED          13           2     1533003
+ OVERFLOW AVERTED          13           3     1533003
+ OVERFLOW AVERTED          13           4     1533003
+ OVERFLOW AVERTED          14           1     1533003
+ OVERFLOW AVERTED          14           2     1533003
+ OVERFLOW AVERTED          14           3     1533003
+ OVERFLOW AVERTED          14           4     1533003
+ OVERFLOW AVERTED          15           1     1533003
+ OVERFLOW AVERTED          15           2     1533003
+ OVERFLOW AVERTED          15           3     1533003
+ OVERFLOW AVERTED          15           4     1533003
+ OVERFLOW AVERTED          16           1     1533003
+ OVERFLOW AVERTED          16           2     1533003
+ OVERFLOW AVERTED          16           3     1533003
+ OVERFLOW AVERTED          16           4     1533003
+ OVERFLOW AVERTED          17           1     1533003
+ OVERFLOW AVERTED          17           2     1533003
+ OVERFLOW AVERTED          17           3     1533003
+ OVERFLOW AVERTED          17           4     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533003
+ Average acceptrate for scan:      1533003  0.000000000000000E+000
+ All channels masked! Scan:      1533003
+ Writing      1533003  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33003.h5
+ Starting analysis of scan     1533004
+ Time and duration (in mins) of scan:      59061.1818183   6.6998
+ Number of samples, observed patch:    20100  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533004
+ Scan mode is liss, so we remove both el- and az-templates     1533004
+ Making frequency mask     1533004
+ Found          101  spikes
+ Found            0  jumps
+ Found          511  anomalies
+ Found            5  edge spikes
+ OVERFLOW AVERTED           1           1     1533004
+ OVERFLOW AVERTED           1           2     1533004
+ OVERFLOW AVERTED           1           3     1533004
+ OVERFLOW AVERTED           1           4     1533004
+ OVERFLOW AVERTED           2           1     1533004
+ OVERFLOW AVERTED           2           2     1533004
+ OVERFLOW AVERTED           2           3     1533004
+ OVERFLOW AVERTED           2           4     1533004
+ OVERFLOW AVERTED           3           1     1533004
+ OVERFLOW AVERTED           3           2     1533004
+ OVERFLOW AVERTED           3           3     1533004
+ OVERFLOW AVERTED           3           4     1533004
+ OVERFLOW AVERTED           4           1     1533004
+ OVERFLOW AVERTED           4           2     1533004
+ OVERFLOW AVERTED           4           3     1533004
+ OVERFLOW AVERTED           4           4     1533004
+ OVERFLOW AVERTED           5           1     1533004
+ OVERFLOW AVERTED           5           2     1533004
+ OVERFLOW AVERTED           5           3     1533004
+ OVERFLOW AVERTED           5           4     1533004
+ OVERFLOW AVERTED           6           1     1533004
+ OVERFLOW AVERTED           6           2     1533004
+ OVERFLOW AVERTED           6           3     1533004
+ OVERFLOW AVERTED           6           4     1533004
+ OVERFLOW AVERTED           7           1     1533004
+ OVERFLOW AVERTED           7           2     1533004
+ OVERFLOW AVERTED           7           3     1533004
+ OVERFLOW AVERTED           7           4     1533004
+ OVERFLOW AVERTED           8           1     1533004
+ OVERFLOW AVERTED           8           2     1533004
+ OVERFLOW AVERTED           8           3     1533004
+ OVERFLOW AVERTED           8           4     1533004
+ OVERFLOW AVERTED           9           1     1533004
+ OVERFLOW AVERTED           9           2     1533004
+ OVERFLOW AVERTED           9           3     1533004
+ OVERFLOW AVERTED           9           4     1533004
+ OVERFLOW AVERTED          10           1     1533004
+ OVERFLOW AVERTED          10           2     1533004
+ OVERFLOW AVERTED          10           3     1533004
+ OVERFLOW AVERTED          10           4     1533004
+ OVERFLOW AVERTED          11           1     1533004
+ OVERFLOW AVERTED          11           2     1533004
+ OVERFLOW AVERTED          11           3     1533004
+ OVERFLOW AVERTED          11           4     1533004
+ OVERFLOW AVERTED          12           1     1533004
+ OVERFLOW AVERTED          12           2     1533004
+ OVERFLOW AVERTED          12           3     1533004
+ OVERFLOW AVERTED          12           4     1533004
+ OVERFLOW AVERTED          13           1     1533004
+ OVERFLOW AVERTED          13           2     1533004
+ OVERFLOW AVERTED          13           3     1533004
+ OVERFLOW AVERTED          13           4     1533004
+ OVERFLOW AVERTED          14           1     1533004
+ OVERFLOW AVERTED          14           2     1533004
+ OVERFLOW AVERTED          14           3     1533004
+ OVERFLOW AVERTED          14           4     1533004
+ OVERFLOW AVERTED          15           1     1533004
+ OVERFLOW AVERTED          15           2     1533004
+ OVERFLOW AVERTED          15           3     1533004
+ OVERFLOW AVERTED          15           4     1533004
+ OVERFLOW AVERTED          16           1     1533004
+ OVERFLOW AVERTED          16           2     1533004
+ OVERFLOW AVERTED          16           3     1533004
+ OVERFLOW AVERTED          16           4     1533004
+ OVERFLOW AVERTED          17           1     1533004
+ OVERFLOW AVERTED          17           2     1533004
+ OVERFLOW AVERTED          17           3     1533004
+ OVERFLOW AVERTED          17           4     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533004
+ Average acceptrate for scan:      1533004  0.000000000000000E+000
+ All channels masked! Scan:      1533004
+ Writing      1533004  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33004.h5
+ Starting analysis of scan     1533005
+ Time and duration (in mins) of scan:      59061.1866505   6.6998
+ Number of samples, observed patch:    20100  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533005
+ Scan mode is liss, so we remove both el- and az-templates     1533005
+ Making frequency mask     1533005
+ Found           99  spikes
+ Found            0  jumps
+ Found          575  anomalies
+ Found            3  edge spikes
+ OVERFLOW AVERTED           1           1     1533005
+ OVERFLOW AVERTED           1           2     1533005
+ OVERFLOW AVERTED           1           3     1533005
+ OVERFLOW AVERTED           1           4     1533005
+ OVERFLOW AVERTED           2           1     1533005
+ OVERFLOW AVERTED           2           2     1533005
+ OVERFLOW AVERTED           2           3     1533005
+ OVERFLOW AVERTED           2           4     1533005
+ OVERFLOW AVERTED           3           1     1533005
+ OVERFLOW AVERTED           3           2     1533005
+ OVERFLOW AVERTED           3           3     1533005
+ OVERFLOW AVERTED           3           4     1533005
+ OVERFLOW AVERTED           4           1     1533005
+ OVERFLOW AVERTED           4           2     1533005
+ OVERFLOW AVERTED           4           3     1533005
+ OVERFLOW AVERTED           4           4     1533005
+ OVERFLOW AVERTED           5           1     1533005
+ OVERFLOW AVERTED           5           2     1533005
+ OVERFLOW AVERTED           5           3     1533005
+ OVERFLOW AVERTED           5           4     1533005
+ OVERFLOW AVERTED           6           1     1533005
+ OVERFLOW AVERTED           6           2     1533005
+ OVERFLOW AVERTED           6           3     1533005
+ OVERFLOW AVERTED           6           4     1533005
+ OVERFLOW AVERTED           7           1     1533005
+ OVERFLOW AVERTED           7           2     1533005
+ OVERFLOW AVERTED           7           3     1533005
+ OVERFLOW AVERTED           7           4     1533005
+ OVERFLOW AVERTED           8           1     1533005
+ OVERFLOW AVERTED           8           2     1533005
+ OVERFLOW AVERTED           8           3     1533005
+ OVERFLOW AVERTED           8           4     1533005
+ OVERFLOW AVERTED           9           1     1533005
+ OVERFLOW AVERTED           9           2     1533005
+ OVERFLOW AVERTED           9           3     1533005
+ OVERFLOW AVERTED           9           4     1533005
+ OVERFLOW AVERTED          10           1     1533005
+ OVERFLOW AVERTED          10           2     1533005
+ OVERFLOW AVERTED          10           3     1533005
+ OVERFLOW AVERTED          10           4     1533005
+ OVERFLOW AVERTED          11           1     1533005
+ OVERFLOW AVERTED          11           2     1533005
+ OVERFLOW AVERTED          11           3     1533005
+ OVERFLOW AVERTED          11           4     1533005
+ OVERFLOW AVERTED          12           1     1533005
+ OVERFLOW AVERTED          12           2     1533005
+ OVERFLOW AVERTED          12           3     1533005
+ OVERFLOW AVERTED          12           4     1533005
+ OVERFLOW AVERTED          13           1     1533005
+ OVERFLOW AVERTED          13           2     1533005
+ OVERFLOW AVERTED          13           3     1533005
+ OVERFLOW AVERTED          13           4     1533005
+ OVERFLOW AVERTED          14           1     1533005
+ OVERFLOW AVERTED          14           2     1533005
+ OVERFLOW AVERTED          14           3     1533005
+ OVERFLOW AVERTED          14           4     1533005
+ OVERFLOW AVERTED          15           1     1533005
+ OVERFLOW AVERTED          15           2     1533005
+ OVERFLOW AVERTED          15           3     1533005
+ OVERFLOW AVERTED          15           4     1533005
+ OVERFLOW AVERTED          16           1     1533005
+ OVERFLOW AVERTED          16           2     1533005
+ OVERFLOW AVERTED          16           3     1533005
+ OVERFLOW AVERTED          16           4     1533005
+ OVERFLOW AVERTED          17           1     1533005
+ OVERFLOW AVERTED          17           2     1533005
+ OVERFLOW AVERTED          17           3     1533005
+ OVERFLOW AVERTED          17           4     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533005
+ Average acceptrate for scan:      1533005  0.000000000000000E+000
+ All channels masked! Scan:      1533005
+ Writing      1533005  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33005.h5
+ Starting analysis of scan     1533006
+ Time and duration (in mins) of scan:      59061.1914770   6.7081
+ Number of samples, observed patch:    20125  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533006
+ Scan mode is liss, so we remove both el- and az-templates     1533006
+ Making frequency mask     1533006
+ Found          113  spikes
+ Found            5  jumps
+ Found          545  anomalies
+ Found            5  edge spikes
+ OVERFLOW AVERTED           1           1     1533006
+ OVERFLOW AVERTED           1           2     1533006
+ OVERFLOW AVERTED           1           3     1533006
+ OVERFLOW AVERTED           1           4     1533006
+ OVERFLOW AVERTED           2           1     1533006
+ OVERFLOW AVERTED           2           2     1533006
+ OVERFLOW AVERTED           2           3     1533006
+ OVERFLOW AVERTED           2           4     1533006
+ OVERFLOW AVERTED           3           1     1533006
+ OVERFLOW AVERTED           3           2     1533006
+ OVERFLOW AVERTED           3           3     1533006
+ OVERFLOW AVERTED           3           4     1533006
+ OVERFLOW AVERTED           4           1     1533006
+ OVERFLOW AVERTED           4           2     1533006
+ OVERFLOW AVERTED           4           3     1533006
+ OVERFLOW AVERTED           4           4     1533006
+ OVERFLOW AVERTED           5           1     1533006
+ OVERFLOW AVERTED           5           2     1533006
+ OVERFLOW AVERTED           5           3     1533006
+ OVERFLOW AVERTED           5           4     1533006
+ OVERFLOW AVERTED           6           1     1533006
+ OVERFLOW AVERTED           6           2     1533006
+ OVERFLOW AVERTED           6           3     1533006
+ OVERFLOW AVERTED           6           4     1533006
+ OVERFLOW AVERTED           7           1     1533006
+ OVERFLOW AVERTED           7           2     1533006
+ OVERFLOW AVERTED           7           3     1533006
+ OVERFLOW AVERTED           7           4     1533006
+ OVERFLOW AVERTED           8           1     1533006
+ OVERFLOW AVERTED           8           2     1533006
+ OVERFLOW AVERTED           8           3     1533006
+ OVERFLOW AVERTED           8           4     1533006
+ OVERFLOW AVERTED           9           1     1533006
+ OVERFLOW AVERTED           9           2     1533006
+ OVERFLOW AVERTED           9           3     1533006
+ OVERFLOW AVERTED           9           4     1533006
+ OVERFLOW AVERTED          10           1     1533006
+ OVERFLOW AVERTED          10           2     1533006
+ OVERFLOW AVERTED          10           3     1533006
+ OVERFLOW AVERTED          10           4     1533006
+ OVERFLOW AVERTED          11           1     1533006
+ OVERFLOW AVERTED          11           2     1533006
+ OVERFLOW AVERTED          11           3     1533006
+ OVERFLOW AVERTED          11           4     1533006
+ OVERFLOW AVERTED          12           1     1533006
+ OVERFLOW AVERTED          12           2     1533006
+ OVERFLOW AVERTED          12           3     1533006
+ OVERFLOW AVERTED          12           4     1533006
+ OVERFLOW AVERTED          13           1     1533006
+ OVERFLOW AVERTED          13           2     1533006
+ OVERFLOW AVERTED          13           3     1533006
+ OVERFLOW AVERTED          13           4     1533006
+ OVERFLOW AVERTED          14           1     1533006
+ OVERFLOW AVERTED          14           2     1533006
+ OVERFLOW AVERTED          14           3     1533006
+ OVERFLOW AVERTED          14           4     1533006
+ OVERFLOW AVERTED          15           1     1533006
+ OVERFLOW AVERTED          15           2     1533006
+ OVERFLOW AVERTED          15           3     1533006
+ OVERFLOW AVERTED          15           4     1533006
+ OVERFLOW AVERTED          16           1     1533006
+ OVERFLOW AVERTED          16           2     1533006
+ OVERFLOW AVERTED          16           3     1533006
+ OVERFLOW AVERTED          16           4     1533006
+ OVERFLOW AVERTED          17           1     1533006
+ OVERFLOW AVERTED          17           2     1533006
+ OVERFLOW AVERTED          17           3     1533006
+ OVERFLOW AVERTED          17           4     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533006
+ Average acceptrate for scan:      1533006  0.000000000000000E+000
+ All channels masked! Scan:      1533006
+ Writing      1533006  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33006.h5
+ Starting analysis of scan     1533007
+ Time and duration (in mins) of scan:      59061.1962977   6.7244
+ Number of samples, observed patch:    20174  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533007
+ Scan mode is liss, so we remove both el- and az-templates     1533007
+ Making frequency mask     1533007
+ Found          133  spikes
+ Found            0  jumps
+ Found          552  anomalies
+ Found            4  edge spikes
+ OVERFLOW AVERTED           1           1     1533007
+ OVERFLOW AVERTED           1           2     1533007
+ OVERFLOW AVERTED           1           3     1533007
+ OVERFLOW AVERTED           1           4     1533007
+ OVERFLOW AVERTED           2           1     1533007
+ OVERFLOW AVERTED           2           2     1533007
+ OVERFLOW AVERTED           2           3     1533007
+ OVERFLOW AVERTED           2           4     1533007
+ OVERFLOW AVERTED           3           1     1533007
+ OVERFLOW AVERTED           3           2     1533007
+ OVERFLOW AVERTED           3           3     1533007
+ OVERFLOW AVERTED           3           4     1533007
+ OVERFLOW AVERTED           4           1     1533007
+ OVERFLOW AVERTED           4           2     1533007
+ OVERFLOW AVERTED           4           3     1533007
+ OVERFLOW AVERTED           4           4     1533007
+ OVERFLOW AVERTED           5           1     1533007
+ OVERFLOW AVERTED           5           2     1533007
+ OVERFLOW AVERTED           5           3     1533007
+ OVERFLOW AVERTED           5           4     1533007
+ OVERFLOW AVERTED           6           1     1533007
+ OVERFLOW AVERTED           6           2     1533007
+ OVERFLOW AVERTED           6           3     1533007
+ OVERFLOW AVERTED           6           4     1533007
+ OVERFLOW AVERTED           7           1     1533007
+ OVERFLOW AVERTED           7           2     1533007
+ OVERFLOW AVERTED           7           3     1533007
+ OVERFLOW AVERTED           7           4     1533007
+ OVERFLOW AVERTED           8           1     1533007
+ OVERFLOW AVERTED           8           2     1533007
+ OVERFLOW AVERTED           8           3     1533007
+ OVERFLOW AVERTED           8           4     1533007
+ OVERFLOW AVERTED           9           1     1533007
+ OVERFLOW AVERTED           9           2     1533007
+ OVERFLOW AVERTED           9           3     1533007
+ OVERFLOW AVERTED           9           4     1533007
+ OVERFLOW AVERTED          10           1     1533007
+ OVERFLOW AVERTED          10           2     1533007
+ OVERFLOW AVERTED          10           3     1533007
+ OVERFLOW AVERTED          10           4     1533007
+ OVERFLOW AVERTED          11           1     1533007
+ OVERFLOW AVERTED          11           2     1533007
+ OVERFLOW AVERTED          11           3     1533007
+ OVERFLOW AVERTED          11           4     1533007
+ OVERFLOW AVERTED          12           1     1533007
+ OVERFLOW AVERTED          12           2     1533007
+ OVERFLOW AVERTED          12           3     1533007
+ OVERFLOW AVERTED          12           4     1533007
+ OVERFLOW AVERTED          13           1     1533007
+ OVERFLOW AVERTED          13           2     1533007
+ OVERFLOW AVERTED          13           3     1533007
+ OVERFLOW AVERTED          13           4     1533007
+ OVERFLOW AVERTED          14           1     1533007
+ OVERFLOW AVERTED          14           2     1533007
+ OVERFLOW AVERTED          14           3     1533007
+ OVERFLOW AVERTED          14           4     1533007
+ OVERFLOW AVERTED          15           1     1533007
+ OVERFLOW AVERTED          15           2     1533007
+ OVERFLOW AVERTED          15           3     1533007
+ OVERFLOW AVERTED          15           4     1533007
+ OVERFLOW AVERTED          16           1     1533007
+ OVERFLOW AVERTED          16           2     1533007
+ OVERFLOW AVERTED          16           3     1533007
+ OVERFLOW AVERTED          16           4     1533007
+ OVERFLOW AVERTED          17           1     1533007
+ OVERFLOW AVERTED          17           2     1533007
+ OVERFLOW AVERTED          17           3     1533007
+ OVERFLOW AVERTED          17           4     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533007
+ Average acceptrate for scan:      1533007  0.000000000000000E+000
+ All channels masked! Scan:      1533007
+ Writing      1533007  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33007.h5
+ Starting analysis of scan     1533008
+ Time and duration (in mins) of scan:      59061.2011181   6.7331
+ Number of samples, observed patch:    20200  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533008
+ Scan mode is liss, so we remove both el- and az-templates     1533008
+ Making frequency mask     1533008
+ Found          137  spikes
+ Found            0  jumps
+ Found          614  anomalies
+ Found            7  edge spikes
+ OVERFLOW AVERTED           1           1     1533008
+ OVERFLOW AVERTED           1           2     1533008
+ OVERFLOW AVERTED           1           3     1533008
+ OVERFLOW AVERTED           1           4     1533008
+ OVERFLOW AVERTED           2           1     1533008
+ OVERFLOW AVERTED           2           2     1533008
+ OVERFLOW AVERTED           2           3     1533008
+ OVERFLOW AVERTED           2           4     1533008
+ OVERFLOW AVERTED           3           1     1533008
+ OVERFLOW AVERTED           3           2     1533008
+ OVERFLOW AVERTED           3           3     1533008
+ OVERFLOW AVERTED           3           4     1533008
+ OVERFLOW AVERTED           4           1     1533008
+ OVERFLOW AVERTED           4           2     1533008
+ OVERFLOW AVERTED           4           3     1533008
+ OVERFLOW AVERTED           4           4     1533008
+ OVERFLOW AVERTED           5           1     1533008
+ OVERFLOW AVERTED           5           2     1533008
+ OVERFLOW AVERTED           5           3     1533008
+ OVERFLOW AVERTED           5           4     1533008
+ OVERFLOW AVERTED           6           1     1533008
+ OVERFLOW AVERTED           6           2     1533008
+ OVERFLOW AVERTED           6           3     1533008
+ OVERFLOW AVERTED           6           4     1533008
+ OVERFLOW AVERTED           7           1     1533008
+ OVERFLOW AVERTED           7           2     1533008
+ OVERFLOW AVERTED           7           3     1533008
+ OVERFLOW AVERTED           7           4     1533008
+ OVERFLOW AVERTED           8           1     1533008
+ OVERFLOW AVERTED           8           2     1533008
+ OVERFLOW AVERTED           8           3     1533008
+ OVERFLOW AVERTED           8           4     1533008
+ OVERFLOW AVERTED           9           1     1533008
+ OVERFLOW AVERTED           9           2     1533008
+ OVERFLOW AVERTED           9           3     1533008
+ OVERFLOW AVERTED           9           4     1533008
+ OVERFLOW AVERTED          10           1     1533008
+ OVERFLOW AVERTED          10           2     1533008
+ OVERFLOW AVERTED          10           3     1533008
+ OVERFLOW AVERTED          10           4     1533008
+ OVERFLOW AVERTED          11           1     1533008
+ OVERFLOW AVERTED          11           2     1533008
+ OVERFLOW AVERTED          11           3     1533008
+ OVERFLOW AVERTED          11           4     1533008
+ OVERFLOW AVERTED          12           1     1533008
+ OVERFLOW AVERTED          12           2     1533008
+ OVERFLOW AVERTED          12           3     1533008
+ OVERFLOW AVERTED          12           4     1533008
+ OVERFLOW AVERTED          13           1     1533008
+ OVERFLOW AVERTED          13           2     1533008
+ OVERFLOW AVERTED          13           3     1533008
+ OVERFLOW AVERTED          13           4     1533008
+ OVERFLOW AVERTED          14           1     1533008
+ OVERFLOW AVERTED          14           2     1533008
+ OVERFLOW AVERTED          14           3     1533008
+ OVERFLOW AVERTED          14           4     1533008
+ OVERFLOW AVERTED          15           1     1533008
+ OVERFLOW AVERTED          15           2     1533008
+ OVERFLOW AVERTED          15           3     1533008
+ OVERFLOW AVERTED          15           4     1533008
+ OVERFLOW AVERTED          16           1     1533008
+ OVERFLOW AVERTED          16           2     1533008
+ OVERFLOW AVERTED          16           3     1533008
+ OVERFLOW AVERTED          16           4     1533008
+ OVERFLOW AVERTED          17           1     1533008
+ OVERFLOW AVERTED          17           2     1533008
+ OVERFLOW AVERTED          17           3     1533008
+ OVERFLOW AVERTED          17           4     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533008
+ Average acceptrate for scan:      1533008  0.000000000000000E+000
+ All channels masked! Scan:      1533008
+ Writing      1533008  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33008.h5
+ Starting analysis of scan     1533009
+ Time and duration (in mins) of scan:      59061.2059793   6.6911
+ Number of samples, observed patch:    20074  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533009
+ Scan mode is liss, so we remove both el- and az-templates     1533009
+ Making frequency mask     1533009
+ Found          138  spikes
+ Found            0  jumps
+ Found          569  anomalies
+ Found            6  edge spikes
+ OVERFLOW AVERTED           1           1     1533009
+ OVERFLOW AVERTED           1           2     1533009
+ OVERFLOW AVERTED           1           3     1533009
+ OVERFLOW AVERTED           1           4     1533009
+ OVERFLOW AVERTED           2           1     1533009
+ OVERFLOW AVERTED           2           2     1533009
+ OVERFLOW AVERTED           2           3     1533009
+ OVERFLOW AVERTED           2           4     1533009
+ OVERFLOW AVERTED           3           1     1533009
+ OVERFLOW AVERTED           3           2     1533009
+ OVERFLOW AVERTED           3           3     1533009
+ OVERFLOW AVERTED           3           4     1533009
+ OVERFLOW AVERTED           4           1     1533009
+ OVERFLOW AVERTED           4           2     1533009
+ OVERFLOW AVERTED           4           3     1533009
+ OVERFLOW AVERTED           4           4     1533009
+ OVERFLOW AVERTED           5           1     1533009
+ OVERFLOW AVERTED           5           2     1533009
+ OVERFLOW AVERTED           5           3     1533009
+ OVERFLOW AVERTED           5           4     1533009
+ OVERFLOW AVERTED           6           1     1533009
+ OVERFLOW AVERTED           6           2     1533009
+ OVERFLOW AVERTED           6           3     1533009
+ OVERFLOW AVERTED           6           4     1533009
+ OVERFLOW AVERTED           7           1     1533009
+ OVERFLOW AVERTED           7           2     1533009
+ OVERFLOW AVERTED           7           3     1533009
+ OVERFLOW AVERTED           7           4     1533009
+ OVERFLOW AVERTED           8           1     1533009
+ OVERFLOW AVERTED           8           2     1533009
+ OVERFLOW AVERTED           8           3     1533009
+ OVERFLOW AVERTED           8           4     1533009
+ OVERFLOW AVERTED           9           1     1533009
+ OVERFLOW AVERTED           9           2     1533009
+ OVERFLOW AVERTED           9           3     1533009
+ OVERFLOW AVERTED           9           4     1533009
+ OVERFLOW AVERTED          10           1     1533009
+ OVERFLOW AVERTED          10           2     1533009
+ OVERFLOW AVERTED          10           3     1533009
+ OVERFLOW AVERTED          10           4     1533009
+ OVERFLOW AVERTED          11           1     1533009
+ OVERFLOW AVERTED          11           2     1533009
+ OVERFLOW AVERTED          11           3     1533009
+ OVERFLOW AVERTED          11           4     1533009
+ OVERFLOW AVERTED          12           1     1533009
+ OVERFLOW AVERTED          12           2     1533009
+ OVERFLOW AVERTED          12           3     1533009
+ OVERFLOW AVERTED          12           4     1533009
+ OVERFLOW AVERTED          13           1     1533009
+ OVERFLOW AVERTED          13           2     1533009
+ OVERFLOW AVERTED          13           3     1533009
+ OVERFLOW AVERTED          13           4     1533009
+ OVERFLOW AVERTED          14           1     1533009
+ OVERFLOW AVERTED          14           2     1533009
+ OVERFLOW AVERTED          14           3     1533009
+ OVERFLOW AVERTED          14           4     1533009
+ OVERFLOW AVERTED          15           1     1533009
+ OVERFLOW AVERTED          15           2     1533009
+ OVERFLOW AVERTED          15           3     1533009
+ OVERFLOW AVERTED          15           4     1533009
+ OVERFLOW AVERTED          16           1     1533009
+ OVERFLOW AVERTED          16           2     1533009
+ OVERFLOW AVERTED          16           3     1533009
+ OVERFLOW AVERTED          16           4     1533009
+ OVERFLOW AVERTED          17           1     1533009
+ OVERFLOW AVERTED          17           2     1533009
+ OVERFLOW AVERTED          17           3     1533009
+ OVERFLOW AVERTED          17           4     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533009
+ Average acceptrate for scan:      1533009  0.000000000000000E+000
+ All channels masked! Scan:      1533009
+ Writing      1533009  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33009.h5
+ Starting analysis of scan     1533010
+ Time and duration (in mins) of scan:      59061.2107478   6.7828
+ Number of samples, observed patch:    20349  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533010
+ Scan mode is liss, so we remove both el- and az-templates     1533010
+ Making frequency mask     1533010
+ Found          157  spikes
+ Found            0  jumps
+ Found          609  anomalies
+ Found            1  edge spikes
+ OVERFLOW AVERTED           1           1     1533010
+ OVERFLOW AVERTED           1           2     1533010
+ OVERFLOW AVERTED           1           3     1533010
+ OVERFLOW AVERTED           1           4     1533010
+ OVERFLOW AVERTED           2           1     1533010
+ OVERFLOW AVERTED           2           2     1533010
+ OVERFLOW AVERTED           2           3     1533010
+ OVERFLOW AVERTED           2           4     1533010
+ OVERFLOW AVERTED           3           1     1533010
+ OVERFLOW AVERTED           3           2     1533010
+ OVERFLOW AVERTED           3           3     1533010
+ OVERFLOW AVERTED           3           4     1533010
+ OVERFLOW AVERTED           4           1     1533010
+ OVERFLOW AVERTED           4           2     1533010
+ OVERFLOW AVERTED           4           3     1533010
+ OVERFLOW AVERTED           4           4     1533010
+ OVERFLOW AVERTED           5           1     1533010
+ OVERFLOW AVERTED           5           2     1533010
+ OVERFLOW AVERTED           5           3     1533010
+ OVERFLOW AVERTED           5           4     1533010
+ OVERFLOW AVERTED           6           1     1533010
+ OVERFLOW AVERTED           6           2     1533010
+ OVERFLOW AVERTED           6           3     1533010
+ OVERFLOW AVERTED           6           4     1533010
+ OVERFLOW AVERTED           7           1     1533010
+ OVERFLOW AVERTED           7           2     1533010
+ OVERFLOW AVERTED           7           3     1533010
+ OVERFLOW AVERTED           7           4     1533010
+ OVERFLOW AVERTED           8           1     1533010
+ OVERFLOW AVERTED           8           2     1533010
+ OVERFLOW AVERTED           8           3     1533010
+ OVERFLOW AVERTED           8           4     1533010
+ OVERFLOW AVERTED           9           1     1533010
+ OVERFLOW AVERTED           9           2     1533010
+ OVERFLOW AVERTED           9           3     1533010
+ OVERFLOW AVERTED           9           4     1533010
+ OVERFLOW AVERTED          10           1     1533010
+ OVERFLOW AVERTED          10           2     1533010
+ OVERFLOW AVERTED          10           3     1533010
+ OVERFLOW AVERTED          10           4     1533010
+ OVERFLOW AVERTED          11           1     1533010
+ OVERFLOW AVERTED          11           2     1533010
+ OVERFLOW AVERTED          11           3     1533010
+ OVERFLOW AVERTED          11           4     1533010
+ OVERFLOW AVERTED          12           1     1533010
+ OVERFLOW AVERTED          12           2     1533010
+ OVERFLOW AVERTED          12           3     1533010
+ OVERFLOW AVERTED          12           4     1533010
+ OVERFLOW AVERTED          13           1     1533010
+ OVERFLOW AVERTED          13           2     1533010
+ OVERFLOW AVERTED          13           3     1533010
+ OVERFLOW AVERTED          13           4     1533010
+ OVERFLOW AVERTED          14           1     1533010
+ OVERFLOW AVERTED          14           2     1533010
+ OVERFLOW AVERTED          14           3     1533010
+ OVERFLOW AVERTED          14           4     1533010
+ OVERFLOW AVERTED          15           1     1533010
+ OVERFLOW AVERTED          15           2     1533010
+ OVERFLOW AVERTED          15           3     1533010
+ OVERFLOW AVERTED          15           4     1533010
+ OVERFLOW AVERTED          16           1     1533010
+ OVERFLOW AVERTED          16           2     1533010
+ OVERFLOW AVERTED          16           3     1533010
+ OVERFLOW AVERTED          16           4     1533010
+ OVERFLOW AVERTED          17           1     1533010
+ OVERFLOW AVERTED          17           2     1533010
+ OVERFLOW AVERTED          17           3     1533010
+ OVERFLOW AVERTED          17           4     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           5           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           8           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           9           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          10           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          12           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          13           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          14           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          15           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          18           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          19           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533010
+ Average acceptrate for scan:      1533010  0.000000000000000E+000
+ All channels masked! Scan:      1533010
+ Writing      1533010  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/co6/co6_0015
+ 33010.h5

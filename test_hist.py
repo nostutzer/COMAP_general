@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import shutil
 
 a = np.arange(10, 100)
 print(a)
@@ -26,3 +26,5 @@ print(hist.T)
 fig, ax = plt.subplots()
 ax.imshow(hist.T)
 plt.show()
+
+shutil.copyfile("/home/sagittarius/Documents/COMAP_general/COMAP_general/src/sim/test_hist.png", "/home/sagittarius/Documents/COMAP_general/COMAP_general/src/sim/test_hist_cp.png")

@@ -1,0 +1,296 @@
+  0 processing obsid      15330 (1/1)
+  Removing frequency with >10% NaNs --    15330    20   3       1
+  Removing frequency with >10% NaNs --    15330    20   3       2
+  Removing frequency with >10% NaNs --    15330    20   3       3
+  Removing frequency with >10% NaNs --    15330    20   3       4
+ Suppressing NaN warnings for the rest of this sideband
+  Removing frequency with >10% NaNs --    15330    20   4       1
+  Removing frequency with >10% NaNs --    15330    20   4       2
+  Removing frequency with >10% NaNs --    15330    20   4       3
+  Removing frequency with >10% NaNs --    15330    20   4       4
+ Suppressing NaN warnings for the rest of this sideband
+   Number of NaN elements in        15330  =            3  of       192648
+   0 -- disk read speed =     222.58 MB/sec
+ Starting analysis of scan     1533002
+ Time and duration (in mins) of scan:      59061.1720094   6.9164
+ Number of samples, observed patch:    20750  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533002
+ Scan mode is liss, so we remove both el- and az-templates     1533002
+ Making frequency mask     1533002
+ Found            1  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           3           4  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533002
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533002
+ Average acceptrate for scan:      1533002  0.833754595588235     
+ Writing      1533002  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 2.h5
+ Starting analysis of scan     1533003
+ Time and duration (in mins) of scan:      59061.1769574   6.7498
+ Number of samples, observed patch:    20250  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533003
+ Scan mode is liss, so we remove both el- and az-templates     1533003
+ Making frequency mask     1533003
+ Found            0  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533003
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533003
+ Average acceptrate for scan:      1533003  0.857838350183823     
+ Writing      1533003  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 3.h5
+ Starting analysis of scan     1533004
+ Time and duration (in mins) of scan:      59061.1818183   6.6998
+ Number of samples, observed patch:    20100  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533004
+ Scan mode is liss, so we remove both el- and az-templates     1533004
+ Making frequency mask     1533004
+ Found            0  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533004
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533004
+ Average acceptrate for scan:      1533004  0.834372127757353     
+ Writing      1533004  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 4.h5
+ Starting analysis of scan     1533005
+ Time and duration (in mins) of scan:      59061.1866505   6.6998
+ Number of samples, observed patch:    20100  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533005
+ Scan mode is liss, so we remove both el- and az-templates     1533005
+ Making frequency mask     1533005
+ Found            0  spikes
+ Found            0  jumps
+ Found            1  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533005
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533005
+ Average acceptrate for scan:      1533005  0.859848920036765     
+ Writing      1533005  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 5.h5
+ Starting analysis of scan     1533006
+ Time and duration (in mins) of scan:      59061.1914770   6.7081
+ Number of samples, observed patch:    20125  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533006
+ Scan mode is liss, so we remove both el- and az-templates     1533006
+ Making frequency mask     1533006
+ Found            4  spikes
+ Found            4  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           1           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           6           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          11           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533006
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533006
+ Average acceptrate for scan:      1533006  0.642147288602941     
+ Writing      1533006  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 6.h5
+ Starting analysis of scan     1533007
+ Time and duration (in mins) of scan:      59061.1962977   6.7244
+ Number of samples, observed patch:    20174  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533007
+ Scan mode is liss, so we remove both el- and az-templates     1533007
+ Making frequency mask     1533007
+ Found            0  spikes
+ Found            0  jumps
+ Found            2  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533007
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533007
+ Average acceptrate for scan:      1533007  0.822954963235294     
+ Writing      1533007  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 7.h5
+ Starting analysis of scan     1533008
+ Time and duration (in mins) of scan:      59061.2011181   6.7331
+ Number of samples, observed patch:    20200  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533008
+ Scan mode is liss, so we remove both el- and az-templates     1533008
+ Making frequency mask     1533008
+ Found            0  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533008
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533008
+ Average acceptrate for scan:      1533008  0.819422104779412     
+ Writing      1533008  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 8.h5
+ Starting analysis of scan     1533009
+ Time and duration (in mins) of scan:      59061.2059793   6.6911
+ Number of samples, observed patch:    20074  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533009
+ Scan mode is liss, so we remove both el- and az-templates     1533009
+ Making frequency mask     1533009
+ Found            1  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          17           4  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533009
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533009
+ Average acceptrate for scan:      1533009  0.828412224264706     
+ Writing      1533009  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153300
+ 9.h5
+ Starting analysis of scan     1533010
+ Time and duration (in mins) of scan:      59061.2107478   6.7828
+ Number of samples, observed patch:    20349  co6
+ Scan type: liss
+ Removing pointing templates, id:      1533010
+ Scan mode is liss, so we remove both el- and az-templates     1533010
+ Making frequency mask     1533010
+ Found            1  spikes
+ Found            0  jumps
+ Found            0  anomalies
+ Found            0  edge spikes
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+           2           4  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          16           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           1  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           2  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           3  0.0000000E+00     1533010
+ Rejecting entire sideband (too much was masked) det, sb, acceptrate, scanid:
+          20           4  0.0000000E+00     1533010
+ Average acceptrate for scan:      1533010  0.830135569852941     
+ Writing      1533010  to disk
+ /mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/co6/co6_00153301
+ 0.h5
