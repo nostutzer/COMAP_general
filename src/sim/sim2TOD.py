@@ -7,6 +7,7 @@ import shutil
 from tqdm import trange
 import sys 
 import argparse
+import re
 
 class Sim2TOD:
     def __init__(self, cube_filename, tod_in_filename, tod_out_filename):
@@ -44,7 +45,28 @@ class Sim2TOD:
         args = parser.parse_args()
         self.param_file = args.parameters
     
+    def read_paramfile(self):
+        param_file = open(self.param_file, "r")
+        params = param_file.read()
+        runlist_path = re.search(r"RUNLIST\s*=\s*'(\/.*?)'", params)
+        self.runlist_path = str(runlist_path.group(1))
         
+        tod_in_path = re.search(r"LEVEL1_DIR\s*=\s*'(\/.*?)'", params)
+        self.tod_in_path = str(tod_in_path.group(1))
+        
+        tod_out_path = re.search(r"SIM_LEVEL1_dir\s*=\s*'(\/.*?)'", params)
+        self.tod_out_path = str(tod_out_path.group(1))
+        
+        print(self.l1_dir)
+        """
+        for line in param_file:
+            params = re.split("= |' | ", line)
+            if "RUNLIST" in params:
+                self.runlist = params[-2]
+                print("params: ", params)
+                print(self.runlist)
+        """
+    
     def load_cube(self):
         """
         Read the simulated datacube into memory.
@@ -55,7 +77,6 @@ class Sim2TOD:
         cube = cube.transpose(1, 2, 0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
         cube[0, :, :] = cube[0, ::-1, :]
         cube[2, :, :] = cube[2, ::-1, :]
-        print(cube.shape)
         self.cube = cube / np.max(cube)
     
     def make_outfile(self):
@@ -91,7 +112,7 @@ class Sim2TOD:
         pixvec = np.zeros_like(dec, dtype = int)
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
-            pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])
+            pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
             # Update tod_sim values.
             #self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec[i, :]] / tsys
             self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
@@ -113,4 +134,6 @@ if __name__ == "__main__":
     tod_out_filename = tod_out_path + "comap-0015330-2020-07-31-040632_sim_norm.hd5"
 
     sim2tod = Sim2TOD(cube_filename, tod_in_filename, tod_out_filename)
-    sim2tod.run()
+    #sim2tod.run()
+    sim2tod.input()
+    sim2tod.read_paramfile()
