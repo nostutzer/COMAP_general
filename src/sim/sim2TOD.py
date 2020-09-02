@@ -54,10 +54,23 @@ class Sim2TOD:
         tod_in_path = re.search(r"LEVEL1_DIR\s*=\s*'(\/.*?)'", params)
         self.tod_in_path = str(tod_in_path.group(1))
         
-        tod_out_path = re.search(r"SIM_LEVEL1_dir\s*=\s*'(\/.*?)'", params)
+        tod_out_path = re.search(r"SIM_LEVEL1_DIR\s*=\s*'(\/.*?)'", params)
         self.tod_out_path = str(tod_out_path.group(1))
-        
-        print(self.l1_dir)
+
+        cube_path = re.search(r"DATACUBE\s*=\s*'(\/.*?\.\w+)'", params)
+        self.cube_path = str(cube_path.group(1))
+
+        runlist_file = open(self.runlist_path, "r")
+        runlist = runlist_file.read()
+        l1_file_list = re.findall(r"\/.*?\.\w+", runlist)
+        self.l1_file_list = [self.tod_in_path + i for i in l1_file_list]
+        print("Runlist:", self.runlist_path)
+        print("TOD in:", self.tod_in_path)
+        print("TOD out:", self.tod_out_path)
+        print("Cube:", self.cube_path)
+        print("# obsID", len(self.l1_file_list))
+        print("obsID #1: ", self.l1_file_list[0])
+        #sys.exit()
         """
         for line in param_file:
             params = re.split("= |' | ", line)
@@ -110,12 +123,14 @@ class Sim2TOD:
     def write_sim(self):
         nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
         pixvec = np.zeros_like(dec, dtype = int)
+        print(np.nanmax(tod), 1e2 * cube[ :, :, pixvec[i, :]] * np.nanmax(tod))        
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
             # Update tod_sim values.
             #self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec[i, :]] / tsys
-            self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
+            #self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
+            self.tod_sim[i, :, :, :] *= 1 + 1e2 * cube[ :, :, pixvec[i, :]] * np.nanmax(tod)
         
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
@@ -131,9 +146,10 @@ if __name__ == "__main__":
     tod_in_filename = tod_in_path + "comap-0015330-2020-07-31-040632.hd5"
     
     tod_out_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/2020-07/"
-    tod_out_filename = tod_out_path + "comap-0015330-2020-07-31-040632_sim_norm.hd5"
+    tod_out_filename = tod_out_path + "comap-0015330-2020-07-31-040632_sim.hd5"
 
     sim2tod = Sim2TOD(cube_filename, tod_in_filename, tod_out_filename)
-    #sim2tod.run()
     sim2tod.input()
     sim2tod.read_paramfile()
+    #sys.exit()
+    sim2tod.run()

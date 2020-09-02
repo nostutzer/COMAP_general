@@ -76,7 +76,7 @@ plt.savefig("co6_l2_map.png")
 """
 
 data_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/2020-07/"
-data_name = data_path + "comap-0015330-2020-07-31-040632_sim_norm.hd5"
+data_name = data_path + "comap-0015330-2020-07-31-040632_sim.hd5"
 
 nside       = 120
 histo = np.zeros((nside, nside))
@@ -95,7 +95,7 @@ tod[:, 0, :, :] = tod[:, 0, ::-1, :]
 tod[:, 2, :, :] = tod[:, 2, ::-1, :]
 looplen = 0
 print("Looping through feeds: ", time.time() - t0, " sec")
-for j in trange(1):  
+for j in trange(nfeeds):  
     looplen += 1
     px_idx[j, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[j, :], ra[j, :])
     map, edges   = np.histogram(px_idx[j, :], bins = 120 * 120, range = (0, 120 * 120), weights = tod[j, 2, 9, :]) 
