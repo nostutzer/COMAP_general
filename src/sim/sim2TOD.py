@@ -89,8 +89,8 @@ class Sim2TOD:
         #cube       /= np.max(cube)
         maxval         = np.max(cube)
         cube        = np.zeros(cubeshape)
-        cube[:, 60, :] = 10 * maxval
-        cube[60, :, :] = 10 * maxval
+        cube[:, 60, :] = 100 * maxval
+        cube[60, :, :] = 100 * maxval
         cube = cube.reshape(cubeshape[0]*cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.transpose(1, 2, 0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
         cube[0, :, :] = cube[0, ::-1, :]
@@ -135,7 +135,10 @@ class Sim2TOD:
             #self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec[i, :]] / tsys
             self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
             #self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] * np.nanmax(tod)
-        
+        print(np.nanmax(self.tod_sim))
+        print(np.nanmin(self.tod_sim))
+        print(np.nanmax(self.tod))
+        print(np.nanmin(self.tod))
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim

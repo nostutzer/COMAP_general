@@ -10,17 +10,20 @@ import argparse
 import re
 
 class Sim2TOD:
-    def __init__(self):#, cube_filename, tod_in_filename, tod_out_filename):
-        #self.cube_filename = cube_filename  # Filepath of simulated cube.
-        #self.tod_in_filename = tod_in_filename  # Filepath of already existing level1 file.
-        #self.tod_out_filename = tod_out_filename  # Filepath of simulated output level1 file.
+    def __init__(self):
+        """
+        Initializing class and setting class attributes.
+        """
         self.nside = 120   # Number of pixels in each direction.
-        self.dpix = 2.0/60.0  # Pixel resolution in degrees (here, 2 arcminutes)
-        #self.fieldcent = [226, 55]  # Center position of pixel-image, in degrees of ra/dec. CO6
-        #self.fieldcent = [170, 52.5]  # Center position of pixel-image, in degrees of ra/dec. CO7
+        self.dpix = 2.0 / 60.0  # Pixel resolution in degrees (here, 2 arcminutes)
         self.input()
 
     def run(self):
+        """
+        Function to run through the process of opening TOD and add simulated
+        data from a datacube.
+        """
+
         print("Processing Parameterfile: "); t0 = time.time()
         self.read_paramfile()
         
@@ -52,31 +55,40 @@ class Sim2TOD:
             print("Time: ", time.time()-t0, " sec")
 
     def input(self):
+        """
+        Function parsing the command line input.
+        """
         parser = argparse.ArgumentParser()
-        parser.add_argument("-p", "--parameters", type = str, 
+        parser.add_argument("-p", "--param", type = str,
                             help = """Full path and name to parameter file 
                                     containing all needed info to add simulations to
                                     l1 files.""")
         args = parser.parse_args()
-        self.param_file = args.parameters
-    
+        if args.param == None:
+            message = """No input parameterfile given, please provide an input parameterfile"""
+            raise NameError(message)
+        else:
+            self.param_file = args.param
+
     def read_paramfile(self):
-        param_file = open(self.param_file, "r")
-        params = param_file.read()
+        """
+        Function reading the parameter file provided by the command line
+        argument, and defining class parameters.
+        """
 
-        runlist_path = re.search(r"\nRUNLIST\s*=\s*'(\/.*?)'", params)
-        self.runlist_path = str(runlist_path.group(1))
+        runlist_path = re.search(r"\nRUNLIST\s*=\s*'(\/.*?)'", params)  # Defining regex pattern to search for runlist path in parameter file.
+        self.runlist_path = str(runlist_path.group(1))                  # Extracting path
         
-        tod_in_path = re.search(r"\nLEVEL1_DIR\s*=\s*'(\/.*?)'", params)
-        self.tod_in_path = str(tod_in_path.group(1))
+        tod_in_path = re.search(r"\nLEVEL1_DIR\s*=\s*'(\/.*?)'", params)    # Defining regex pattern to search for level1 file path.
+        self.tod_in_path = str(tod_in_path.group(1))                        # Extracting path
         
-        tod_out_path = re.search(r"\nSIM_LEVEL1_DIR\s*=\s*'(\/.*?)'", params)
-        self.tod_out_path = str(tod_out_path.group(1))
+        tod_out_path = re.search(r"\nSIM_LEVEL1_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for level1 file with added simulation path.
+        self.tod_out_path = str(tod_out_path.group(1))                          # Extracting path
         
-        cube_path = re.search(r"\nDATACUBE\s*=\s*'(\/.*?\.\w+)'", params)
-        self.cube_filename = str(cube_path.group(1))
+        cube_path = re.search(r"\nDATACUBE\s*=\s*'(\/.*?\.\w+)'", params)   # Defining regex pattern to search for simulation cube file path.
+        self.cube_filename = str(cube_path.group(1))                        # Extracting path
 
-        runlist_file = open(self.runlist_path, "r")
+        runlist_file = open(self.runlist_path, "r")         # Opening 
         runlist = runlist_file.read()
         tod_in_list = re.findall(r"\/.*?\.\w+", runlist)
         self.tod_in_list = tod_in_list
