@@ -8,6 +8,7 @@ from tqdm import trange
 import sys 
 import argparse
 import re
+from tsysmeasure import TsysMeasure
 
 class Sim2TOD:
     def __init__(self):
@@ -32,27 +33,29 @@ class Sim2TOD:
         self.load_cube()
         
         print("Time: ", time.time()-t0, " sec")
-        print("Copying Outfile: "); t0 = time.time()
-        
-        for i in range(len(self.tod_in_list)):
+        print("Loopig through runlist: "); t0 = time.time()
+        for i in trange(len(self.tod_in_list)):
             self.tod_in_filename    = self.tod_in_path + self.tod_in_list[i]
             self.tod_out_filename   = self.tod_out_path + self.tod_in_list[i]
             
+            #print("Time: ", time.time()-t0, " sec")
+            #print("Copying Outfile: "); t0 = time.time()
+        
             self.make_outfile()
         
-            print("Time: ", time.time()-t0, " sec")
-            print("Loading TOD: "); t0 = time.time()        
+            #print("Time: ", time.time()-t0, " sec")
+            #print("Loading TOD: "); t0 = time.time()        
             self.load_tod()
         
-            print("Time: ", time.time()-t0, " sec")
-            print("Calculating Tsys: "); t0 = time.time()        
+            #print("Time: ", time.time()-t0, " sec")
+            #print("Calculating Tsys: "); t0 = time.time()        
             self.calc_tsys()
         
-            print("Time: ", time.time()-t0, " sec")
-            print("Writing sim-data to TOD: "); t0 = time.time()
+            #print("Time: ", time.time()-t0, " sec")
+            #print("Writing sim-data to TOD: "); t0 = time.time()
             self.write_sim()
         
-            print("Time: ", time.time()-t0, " sec")
+            #print("Time: ", time.time()-t0, " sec")
 
     def input(self):
         """
@@ -75,6 +78,8 @@ class Sim2TOD:
         Function reading the parameter file provided by the command line
         argument, and defining class parameters.
         """
+        param_file  = open(self.param_file, "r")
+        params      = param_file.read()
 
         runlist_path = re.search(r"\nRUNLIST\s*=\s*'(\/.*?)'", params)  # Defining regex pattern to search for runlist path in parameter file.
         self.runlist_path = str(runlist_path.group(1))                  # Extracting path
@@ -103,7 +108,7 @@ class Sim2TOD:
         patch_def = patch_def_file.read()
         fieldcent   = re.search(rf"{self.patch_name}\s*([0-9.]+)\s*([0-9.]+)", patch_def) 
         self.fieldcent = [eval(fieldcent.group(1)), eval(fieldcent.group(2))]
-
+        """
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -113,8 +118,7 @@ class Sim2TOD:
         print("Cube:", self.cube_filename)
         print("# obsID", len(self.tod_in_list))
         print("obsID #1: ", self.tod_in_list[0])
-        #sys.exit()
-    
+        """
     def load_cube(self):
         """
         Read the simulated datacube into memory.
@@ -140,26 +144,41 @@ class Sim2TOD:
         """
         infile        = h5py.File(self.tod_in_filename, "r")
 
-        self.tod      = np.array(infile["/spectrometer/tod"])
-        #self.freqs    = np.array(infile["/spectrometer/frequency"])
-        #self.tod_time = np.array(infile["/spectrometer/MJD"])
+        tod      = np.array(infile["/spectrometer/tod"])
+        vane_angles    = np.array(infile["/hk/antenna0/vane/angle"])/100.0  # Degrees
+        vane_time      = np.array(infile["/hk/antenna0/vane/utc"])
+        array_features = np.array(infile["/hk/array/frame/features"])
+        tod_times      = np.array(infile["/spectrometer/MJD"])
+        
+        self.tod_time = np.array(infile["/spectrometer/MJD"])
         self.feeds    = np.array(infile["/spectrometer/feeds"])
         self.nfeeds   = len(self.feeds)
         self.ra       = np.array(infile["/spectrometer/pixel_pointing/pixel_ra"])
         self.dec      = np.array(infile["/spectrometer/pixel_pointing/pixel_dec"])
-        self.tod_sim  = self.tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
-        #self.vane_angles    = np.array(infile["/hk/antenna0/vane/angle"])/100.0  # Degrees
-        #self.vane_time      = np.array(infile["/hk/antenna0/vane/utc"])
-        #self.array_features = np.array(infile["/hk/array/frame/features"])
-        self.infile = infile
+        self.tod_sim  = tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
+
+        if tod_times[0] > 58712.03706:
+            T_hot      = np.array(f["/hk/antenna0/vane/Tvane"])
+        else:
+            T_hot      = np.array(f["/hk/antenna0/env/ambientLoadTemp"])
+
+        self.load_data_from_arrays(vane_angles, vane_time, array_features, T_hot, tod, tod_times)
         infile.close()
 
     def calc_tsys(self):
-        self.tsys = 55.0  # Hard-coded Tsys value. Needs to be calculated.
+        #self.tsys = 55.0  # Hard-coded Tsys value. Needs to be calculated.
+        
+        Tsys = TsysMeasure()
+        Tsys.load_data_from_file(tod_in_filename)
+        Tsys.solve()
 
+        self.tsys = Tsys.Tsys_of_t(Tsys.tod_times, Tsys.tod)
+        sys.exit()
+        
     def write_sim(self):
         nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
         pixvec = np.zeros_like(dec, dtype = int)
+        
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
@@ -189,4 +208,4 @@ if __name__ == "__main__":
     #sim2tod.input()
     #sim2tod.read_paramfile()
     sim2tod.run()
-    sys.exit()
+    

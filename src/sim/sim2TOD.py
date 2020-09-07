@@ -91,6 +91,43 @@ class Sim2TOD:
         cube        = np.zeros(cubeshape)
         cube[:, 60, :] = 100 * maxval
         cube[60, :, :] = 100 * maxval
+        #cube[60, :, :] = -100 * maxval
+        """
+        mapfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/wo_mask/"
+        mapfile_name = mapfile_path + "co6_map.h5"
+        mapfile = h5py.File(mapfile_name, "r")
+        x = np.array(mapfile["x"])
+        y = np.array(mapfile["y"])
+        x_lim, y_lim = [None,None], [None,None]
+        dx = x[1] - x[0]
+        x_lim[0] = x[0] - 0.5*dx; x_lim[1] = x[-1] + 0.5*dx
+        dy = y[1] - y[0]
+        y_lim[0] = y[1] - 0.5*dy; y_lim[1] = y[-1] + 0.5*dy
+        aspect = dx/dy
+
+        plt.imshow(cube[:, :, 0].T, extent=(x_lim[0],x_lim[1],y_lim[0],y_lim[1]), interpolation='nearest',
+                    aspect=aspect, origin='lower',
+                    vmin = -1e4, vmax=1e4, zorder = 1)
+
+        plt.plot(self.fieldcent[0], self.fieldcent[1], "ro", markersize = 3, zorder = 2)
+        plt.plot(x[0] + 60 * dx, y[0] + 60 * dy, "go", markersize = 3, zorder = 3)
+        plt.plot(self.fieldcent[0], self.fieldcent[1] + dy, "o", color = "orange", markersize = 3, zorder = 4)
+
+        plt.xlim(x[50], x[70])
+        plt.ylim(y[50], y[70])
+        plt.show()
+
+        print(x[0] + 60 * dx, x[0], 60 * dx)
+        print(y[0] + 60 * dy, y[0], 60 * dy)
+        print(x[0] + 60 * self.dpix)
+        print(y[0] + 60 * self.dpix)
+        print(self.fieldcent)
+        print(dx, dy)
+        print(x_lim[0] + 60 * self.dpix, y_lim[0] + 60 * self.dpix)
+        print(x[60], x[59])
+        print(y[60], y[59])
+        sys.exit()
+        """
         cube = cube.reshape(cubeshape[0]*cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.transpose(1, 2, 0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
         cube[0, :, :] = cube[0, ::-1, :]
@@ -128,21 +165,24 @@ class Sim2TOD:
     def write_sim(self):
         nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
         pixvec = np.zeros_like(dec, dtype = int)
+        maxval = np.max(cube)
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
             # Update tod_sim values.
             #self.tod_sim[i, :, :, :] += np.nanmean(np.array(tod[i, :, :, :]), axis=2)[ :, :, None] * cube[ :, :, pixvec[i, :]] / tsys
             self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
+            where = cube[1, 100, pixvec[i, :]] > 0
+            #print(pixvec[i, where])
+            if len(where) > 10:
+                for j in where:
+                    print(ra[i, j], dec[i, j])
             #self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] * np.nanmax(tod)
-        print(np.nanmax(self.tod_sim))
-        print(np.nanmin(self.tod_sim))
-        print(np.nanmax(self.tod))
-        print(np.nanmin(self.tod))
+        """
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
-            
+        """    
 if __name__ == "__main__":
     cube_path = "/mn/stornext/d16/cmbco/comap/protodir/"
     cube_filename = cube_path + "cube_real.npy"
