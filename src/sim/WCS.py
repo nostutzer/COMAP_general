@@ -52,7 +52,6 @@ def ang2pix(naxis, cdelt, crval, theta, phi, ctype=['RA---TAN', 'DEC--TAN']):
     
     # Setup 2D wcs object
     w = Info2WCS(naxis, cdelt, crval, ctype=ctype)
-    
     # Generate pixel coordinates
     pixcrd = np.floor(np.array(w.wcs_world2pix(phi, theta, 0))).astype('int64')
 
@@ -121,7 +120,6 @@ def pix2ang1D(w, naxis, pix):
 
     # Generate pixel coordinates
     pixcrd = np.array(w.wcs_pix2world(xpix, ypix, 0))
-
 
     return pixcrd[1,:], pixcrd[0,:]
 

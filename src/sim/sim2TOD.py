@@ -22,6 +22,8 @@ class Sim2TOD:
     def run(self):
         print("Loading Cube"); t0 = time.time()
         self.load_cube()
+        print("max: ", np.max(self.cube[1, 100, :]))
+        print("min: ", np.min(self.cube[1, 100, :]))
         print("Time: ", time.time()-t0, " sec")
         print("Copying outfile"); t0 = time.time()
         self.make_outfile()
@@ -174,9 +176,14 @@ class Sim2TOD:
             self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] / tsys
             where = cube[1, 100, pixvec[i, :]] > 0
             #print(pixvec[i, where])
-            if len(where) > 10:
-                for j in where:
+            print(np.sum(cube[1, 100, np.unique(pixvec[i, :])]) > 0)
+            print(ra[i, where[::12]])
+            print(dec[i, where[::12]])
+            """
+            if len(where) > 0:
+                for j in range(10):
                     print(ra[i, j], dec[i, j])
+            """
             #self.tod_sim[i, :, :, :] *= 1 + cube[ :, :, pixvec[i, :]] * np.nanmax(tod)
         """
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.

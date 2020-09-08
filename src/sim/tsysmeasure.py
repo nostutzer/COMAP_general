@@ -64,6 +64,7 @@ class TsysMeasure:
                 vane_timei = vane_timei[vane_activei]
                 tod_start_idx = np.argmin(np.abs(vane_timei[0]-tod_times))
                 tod_stop_idx = np.argmin(np.abs(vane_timei[-1]-tod_times))
+                self.calib_indices_tod[i, :] = tod_start_idx, tod_stop_idx
                 for feed_idx in range(nfeeds):
                     for band_idx in range(nbands):
                         for freq_idx in range(nfreqs):

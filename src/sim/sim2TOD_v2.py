@@ -157,7 +157,7 @@ class Sim2TOD:
         """
         cube = np.load(self.cube_filename)
         cubeshape = cube.shape
-        cube /= np.max(cube)
+        #cube /= np.max(cube)
         cube = cube.reshape(cubeshape[0]*cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.transpose(1, 2, 0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
         cube[0, :, :] = cube[0, ::-1, :]
@@ -208,7 +208,23 @@ class Sim2TOD:
     def write_sim(self):
         nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
         pixvec = np.zeros_like(dec, dtype = int)
-        
+        first_cal_idx = self.Tsys.calib_indices_tod[0, :]
+        second_cal_idx = self.Tsys.calib_indices_tod[1, :]
+        tod_start = first_cal_idx[1]
+        tod_end = second_cal_idx[0]
+
+        print("TOD max: ", np.nanmax(self.tod[..., tod_start:tod_end]))
+        print("TOD min: ", np.nanmin(self.tod[..., tod_start:tod_end]))
+
+        print("Cube max: ", np.nanmax(self.cube))
+        print("Cube min: ", np.nanmin(self.cube))
+
+        print("Tsys max: ", np.nanmax(self.tsys[..., tod_start:tod_end]))
+        print("Tsys min: ", np.nanmin(self.tsys[..., tod_start:tod_end]))
+
+        plt.plot(np.arange(len(self.tsys[2, 2, 9, :])), self.tsys[2, 2, 9, :])
+        plt.savefig("test.png")
+        sys.exit()
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             #t = time.time()
@@ -216,7 +232,9 @@ class Sim2TOD:
             #print("Projection: ", time.time() - t, " sec")
             # Update tod_sim values.
             #t = time.time()
-            self.tod_sim[i, ...] *= 1 + cube[ ..., pixvec[i, :]] / tsys[i, ...]
+            self.tod_sim[i, tod_start:tod_end]  *= 1 
+                                                + (cube[ ..., pixvec[i, tod_start:tod_end]] 
+                                                / tsys[i, tod_start:tod_end])
             #print("Adding to tod: ", time.time() - t, " sec")
         #t = time.time()
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
