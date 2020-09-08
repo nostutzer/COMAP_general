@@ -40,7 +40,7 @@ class TsysMeasure:
 
 
     def load_data_from_file(self, filename):
-        f = h5py.File(tod_in_filename, "r")
+        f = h5py.File(filename, "r")
         vane_angles    = np.array(f["/hk/antenna0/vane/angle"])/100.0  # Degrees
         vane_times     = np.array(f["/hk/antenna0/vane/utc"])
         array_features = np.array(f["/hk/array/frame/features"])
@@ -64,7 +64,7 @@ class TsysMeasure:
                 vane_timei = vane_timei[vane_activei]
                 tod_start_idx = np.argmin(np.abs(vane_timei[0]-tod_times))
                 tod_stop_idx = np.argmin(np.abs(vane_timei[-1]-tod_times))
-                for feed_idx in trange(nfeeds):
+                for feed_idx in range(nfeeds):
                     for band_idx in range(nbands):
                         for freq_idx in range(nfreqs):
                             todi = tod[feed_idx, band_idx, freq_idx, tod_start_idx : tod_stop_idx]
