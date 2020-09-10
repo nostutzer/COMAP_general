@@ -137,10 +137,12 @@ class MapMakerLight():
         infile.close()
         
     def hist(self, idx, tod = None):
-        hist, edge = np.histogram(px_idx, bins = self.nbin, range = (0, self.nbin), weights = tod)
+        histogram = np.histogram(px_idx, bins = self.nbin, range = (0, self.nbin), weights = tod)[0]
+        return histogram
 
     def make_mapL1(self): 
-        histo = np.zeros((self.nfeeds, self.nsb, self.nfreq, self.nside, self.nside))    
+        histo = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
+        allhits = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
         px_idx      = np.zeros_like(self.dec, dtype = int)
         looplen = 0
         
@@ -155,6 +157,7 @@ class MapMakerLight():
                                         self.ra[j, :])
             map, edges  = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], self.tod[j, ...])
             nhit, edges  = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
+
             """
             map, edges   = np.histogram(px_idx[j, :], bins = self.nbin, 
                                         range = (0, self.nbin), 
@@ -162,14 +165,13 @@ class MapMakerLight():
             nhit, edges   = np.histogram(px_idx[j, :], bins = self.nbin, 
                                         range = (0, self.nbin))
             """
-            print(px_idx[j, :])
-            print(nhit[nhit != 0])
-            map /= nhit 
-            print(edges)
-            map = np.nan_to_num(map, nan = 0)
-            histo += map.reshape(nside, nside)     
-
-        #histo = np.where(histo != 0, histo / np.nanmax(histo) * 1e6, np.nan) # Transforming K to muK
+            
+            #map = np.nan_to_num(map, nan = 0)
+            histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
+            allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
+        
+        histo /= allhits
+        self.map = histo / looplen
 
     def make_mapL2(self):
         l2_files = []
