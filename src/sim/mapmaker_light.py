@@ -10,6 +10,7 @@ from tqdm import trange
 import sys
 import argparse
 import os
+import re
 
 
 class MapMakerLight():
@@ -45,7 +46,7 @@ class MapMakerLight():
             message = """The level of the input data is not provided! E.g. -l 1 or -l 2 (only level1 and level2 supported!)"""
             raise NameError(message)
         else:
-            self.param_file     = args.param_file
+            self.param_file     = args.param
             self.outfile    = args.outfile
             self.level      = args.level
 
@@ -57,7 +58,6 @@ class MapMakerLight():
         param_file  = open(self.param_file, "r")
         params      = param_file.read()
 
-        """Processing parameter file"""
         runlist_path = re.search(r"\nRUNLIST\s*=\s*'(\/.*?)'", params)  # Defining regex pattern to search for runlist path in parameter file.
         self.runlist_path = str(runlist_path.group(1))                  # Extracting path
         
@@ -72,19 +72,7 @@ class MapMakerLight():
         
         l2_out_path = re.search(r"\nL2_MAP_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level2 maps.
         self.l2_out_path = str(l2_out_path.group(1))                          # Extracting path
-        
-        patch_name = re.search(r"\s([a-zA-Z0-9]+)\s", runlist)
-        self.patch_name = str(patch_name.group(1))
 
-        patch_def_path = re.search(r"\nPATCH_DEFINITION_FILE\s*=\s*'(\/.*?)'", params)
-        self.patch_def_path = str(patch_def_path.group(1))
-
-        patch_def_file = open(self.patch_def_path, "r")
-        patch_def = patch_def_file.read()
-        fieldcent   = re.search(rf"{self.patch_name}\s*([0-9.]+)\s*([0-9.]+)", patch_def) 
-        self.fieldcent = [eval(fieldcent.group(1)), eval(fieldcent.group(2))]
-
-        """Processing runlist"""
         runlist_file = open(self.runlist_path, "r")         # Opening 
         runlist = runlist_file.read()
         tod_in_list = re.findall(r"\/.*?\.\w+", runlist)
@@ -94,6 +82,18 @@ class MapMakerLight():
         obsIDs_list = re.findall(r"\s\d{6}\s", runlist)
         self.obsIDs_list = obsIDs_list
         self.nobsIDs_list = len(self.obsIDs_list)
+        
+        patch_name = re.search(r"\s([a-zA-Z0-9]+)\s", runlist)
+        self.patch_name = str(patch_name.group(1))
+
+
+        patch_def_path = re.search(r"\nPATCH_DEFINITION_FILE\s*=\s*'(\/.*?)'", params)
+        self.patch_def_path = str(patch_def_path.group(1))
+
+        patch_def_file = open(self.patch_def_path, "r")
+        patch_def = patch_def_file.read()
+        fieldcent   = re.search(rf"{self.patch_name}\s*([0-9.]+)\s*([0-9.]+)", patch_def) 
+        self.fieldcent = [eval(fieldcent.group(1)), eval(fieldcent.group(2))]
 
         runlist_file.close()
         param_file.close()
@@ -102,14 +102,37 @@ class MapMakerLight():
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
         print("Runlist:", self.runlist_path)
-        print("TOD in:", self.tod_in_path)
-        print("TOD out:", self.tod_out_path)
-        print("Cube:", self.cube_filename)
+        print("L1 in:", self.l1_in_path)
+        print("L1 out:", self.l1_out_path)
+        print("L2 in:", self.l2_in_path)
+        print("L2 out:", self.l2_out_path)
         print("# obsID", len(self.tod_in_list))
-        print("obsID #1: ", self.tod_in_list[0])
+        print("obsID file #1: ", self.tod_in_list[0])
+        print("obsID #1: ", self.obsIDs_list[0])
         
     def run(self):
-        print("Not finished")
+        self.read_paramfile()
+        if self.level == 1:
+            print("Loopig through runlist: "); t0 = time.time()
+            for i in trange(len(self.tod_in_list)):
+                self.infile    = self.l1_in_path + self.tod_in_list[i]
+                self.outfile   = self.outfile + "_map.h5"
+                        
+                self.readL1()
+                self.make_mapL1
+            print("Through loop L1")
+        else:
+            print("Loopig through runlist: "); t0 = time.time()
+            for i in trange(len(self.tod_in_list)):
+                self.obsID = self.obsIDs_list[i]
+                l2_files = []
+                for filename in os.listdir(self.l2_in_path):
+                    if f"{self.obsID}" in filename:
+                        l2_files.append(filename)
+                self.l2_files = l2_files
+                self.make_mapL2()
+
+            print("Through loop L2")
 
     def readL1(self):
 
@@ -125,7 +148,7 @@ class MapMakerLight():
         infile.close()
     
     def readL2(self):
-        infile      = h5py.File(filename, "r")
+        infile      = h5py.File(self.infile, "r")
         self.tod    = np.array(infile["tod"])[()].astype(dtype=np.float32, copy=False) 
         pointing    = np.array(infile["point_cel"])[()]
         self.ra     = pointing[:, :, 0] 
@@ -155,57 +178,53 @@ class MapMakerLight():
                                         self.fieldcent, 
                                         self.dec[j, :], 
                                         self.ra[j, :])
-            map, edges  = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], self.tod[j, ...])
-            nhit, edges  = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
+            map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = self.tod[j, ...])
+            nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
 
-            """
-            map, edges   = np.histogram(px_idx[j, :], bins = self.nbin, 
-                                        range = (0, self.nbin), 
-                                        weights = self.tod[j, 2, 9, :]) 
-            nhit, edges   = np.histogram(px_idx[j, :], bins = self.nbin, 
-                                        range = (0, self.nbin))
-            """
-            
-            #map = np.nan_to_num(map, nan = 0)
             histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
         
-        histo /= allhits
-        self.map = histo / looplen
+        histo      /= allhits
+        histo       = np.nan_to_num(histo, nan = 0)
+        self.map    = histo / looplen
+        self.nhit   = allhits
 
     def make_mapL2(self):
-        l2_files = []
-        for filename in os.listdir(self.l2_in_path):
-            if f"{self.obsID}" in filename:
-                l2_files.append(filename)
-        histo = np.zeros((nside, nside))
+        histo   = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))
+        px_idx  = np.zeros_like(self.dec, dtype = int)
         looplen = 0
-        for i in trange(len(l2_files)):
+        for i in trange(len(self.l2_files)):
             self.filename   = self.l2_in_path + l2_files[i]
-            
-            px_idx = np.zeros_like(dec, dtype = int)
+            self.readL2()
             for j in range(nfeeds):  
                 looplen += 1
-                px_idx[j, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[j, :], ra[j, :])
-                map, edges   = np.histogram(px_idx[j, :], bins = nside * nside, range = (0, nside * nside), weights = tod[j, 2, 9, :]) 
-                nhit, edges   = np.histogram(px_idx[j, :], bins = nside * nside, range = (0, nside * nside))
-                #map, edges   = np.histogram(px_idx[j, :], bins = nside * nside, range = (-0.5, nside * nside - 0.5), weights = tod[j, 2, 9, :]) 
-                #nhit, edges   = np.histogram(px_idx[j, :], bins = nside * nside, range = (-0.5, nside * nside - 0.5))
-                map /= nhit 
-                map = np.nan_to_num(map, nan = 0)
-                histo += map.reshape(nside, nside)     
-            infile.close()
-        
-        histo /= looplen
-        #histo = np.where(histo != 0, histo * 1e6, np.nan) # Transforming K to muK
-        
+                px_idx[j, :] = WCS.ang2pix([self.nside, self.nside], 
+                                            [-self.dpix, self.dpix], 
+                                            self.fieldcent, 
+                                            self.dec[j, :], 
+                                            self.ra[j, :])
 
+                map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = self.tod[j, ...])
+                nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
 
+                histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
+                allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
+        
+        histo      /= allhits
+        histo       = np.nan_to_num(histo, nan = 0)
+        self.map    = histo / looplen
+        self.nhit   = allhits        
+
+    def write_mapL1(self):
+        print("Not yet done")
+
+    def write_mapL2(self):
+        print("Not yet done")
 
 if __name__ == "__main__":
-    mapmaker = MapMakerLight()
-
-    
+    maker = MapMakerLight()
+    #maker.read_paramfile()
+    maker.run()
     
     """
     t0 = time.time()
