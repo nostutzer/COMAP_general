@@ -11,6 +11,7 @@ import sys
 import argparse
 import os
 import re
+import ctypes
 
 
 class MapMakerLight():
@@ -113,16 +114,18 @@ class MapMakerLight():
     def run(self):
         self.read_paramfile()
         if self.level == 1:
-            print("Loopig through runlist: "); t0 = time.time()
+            print("Loopig through runlist L1: ")
             for i in trange(len(self.tod_in_list)):
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
                 self.outfile   = self.outfile + "_map.h5"
                         
                 self.readL1()
-                self.make_mapL1
+                self.make_mapL1()
+                self.write_mapL1()
+
             print("Through loop L1")
         else:
-            print("Loopig through runlist: "); t0 = time.time()
+            print("Loopig through runlist L2: ")
             for i in trange(len(self.tod_in_list)):
                 self.obsID = self.obsIDs_list[i]
                 l2_files = []
@@ -131,23 +134,24 @@ class MapMakerLight():
                         l2_files.append(filename)
                 self.l2_files = l2_files
                 self.make_mapL2()
-
+                self.write_mapL2()
             print("Through loop L2")
 
     def readL1(self):
-
-        print("Loading TOD: ", time.time() - t0, " sec"); t0 = time.time()
+        t = time.time()
         infile          = h5py.File(self.infile, "r")
-        self.tod        = np.array(infile["spectrometer/tod"])[()].astype(dtype=np.float32, copy=False) 
+        self.tod        = np.array(infile["spectrometer/tod"])[()].astype(dtype=np.float64, copy=False) 
         self.ra         = np.array(infile["spectrometer/pixel_pointing/pixel_ra"])[()]
         self.dec        = np.array(infile["spectrometer/pixel_pointing/pixel_dec"])[()]
         
         self.tod[:, 0, :, :] = self.tod[:, 0, ::-1, :]
         self.tod[:, 2, :, :] = self.tod[:, 2, ::-1, :]
-        self.nfeeds, self.nsb, self.nfreq, self.nsamp = tod.shape
+        self.nfeeds, self.nsb, self.nfreq, self.nsamp = self.tod.shape
         infile.close()
+        print("L1 file read: ", time.time() - t, "sec")
     
     def readL2(self):
+        print("Reading L2 file:")
         infile      = h5py.File(self.infile, "r")
         self.tod    = np.array(infile["tod"])[()].astype(dtype=np.float32, copy=False) 
         pointing    = np.array(infile["point_cel"])[()]
@@ -156,47 +160,72 @@ class MapMakerLight():
 
         self.tod[:, 0, :, :] = self.tod[:, 0, ::-1, :]
         self.tod[:, 2, :, :] = self.tod[:, 2, ::-1, :]
-        self.nfeeds, self.nsb, self.nfreq, self.nsamp = tod.shape
+        self.nfeeds, self.nsb, self.nfreq, self.nsamp = self.tod.shape
         infile.close()
         
-    def hist(self, idx, tod = None):
-        histogram = np.histogram(px_idx, bins = self.nbin, range = (0, self.nbin), weights = tod)[0]
-        return histogram
+    def hist(self, idx, tod):
+        map = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_double)
+        nhit = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_int)
 
-    def make_mapL1(self): 
+        maputilslib = ctypes.cdll.LoadLibrary("histutils.so.1")  # Load shared C utils library.
+        float32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_float, ndim=3, flags="contiguous")   # 4D array 32-bit float pointer object.
+        float64_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_double, ndim=3, flags="contiguous")   # 4D array 32-bit float pointer object.
+        int32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=3, flags="contiguous")       # 4D array 32-bit integer pointer object.
+        int32_array1 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=1, flags="contiguous")       # 4D array 32-bit integer pointer object.
+
+        maputilslib.histogram.argtypes = [int32_array1, float64_array3, float64_array3, int32_array3,        # Specifying input types for C library function.
+                                        ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        maputilslib.histogram(idx, tod, map, nhit, self.nsb, self.nfreq, self.nsamp, self.nbin)
+        return map, nhit
+
+    def make_mapL1(self):
+        print("Making L1 map:") 
         histo = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
         allhits = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
-        px_idx      = np.zeros_like(self.dec, dtype = int)
+        px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)
         looplen = 0
-        
-        print("Looping through feeds: ", time.time() - t0, " sec")
-        
-        for j in trange(nfeeds):  
+                
+        t = time.time()
+        for i in trange(self.nfeeds):  
             looplen += 1
-            px_idx[j, :] = WCS.ang2pix([self.nside, self.nside], 
+            px_idx[i, :] = WCS.ang2pix([self.nside, self.nside], 
                                         [-self.dpix, self.dpix], 
                                         self.fieldcent, 
-                                        self.dec[j, :], 
-                                        self.ra[j, :])
-            map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = self.tod[j, ...])
-            nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
-
+                                        self.dec[i, :], 
+                                        self.ra[i, :])
+            map, nhit = self.hist(px_idx[i, :], self.tod[i, ...])
+            hit, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin))
+            npmap, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin), weights = self.tod[i, 3, 125, :])
+            print(nhit.shape, hit.shape)
+            """for i in range(self.nsamp):
+                print(hit[i], nhit[2, 9, i])
+            """
+            for i in range(120 * 120):
+                print(np.absolute(map[3, 125, i] - npmap[i]) / npmap[i], map[3, 125, i], npmap[i])
+            print(np.allclose(hit, nhit[3, 125, :]))
+            print(np.allclose(npmap, map[3, 125, :]))
+            sys.exit()
+            #map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[i, :], args = self.tod[i, ...])
+            #nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[i, :], args = None)
             histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
-        
+        print("\nLoop time: ", time.time() - t, " sec\n")
+
         histo      /= allhits
         histo       = np.nan_to_num(histo, nan = 0)
         self.map    = histo / looplen
         self.nhit   = allhits
+        print("DOne with mapmaking:")
 
     def make_mapL2(self):
+        print("Makign L2 map:") 
         histo   = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))
         px_idx  = np.zeros_like(self.dec, dtype = int)
         looplen = 0
         for i in trange(len(self.l2_files)):
             self.filename   = self.l2_in_path + l2_files[i]
             self.readL2()
-            for j in range(nfeeds):  
+            for j in range(self.nfeeds):  
                 looplen += 1
                 px_idx[j, :] = WCS.ang2pix([self.nside, self.nside], 
                                             [-self.dpix, self.dpix], 
@@ -205,7 +234,7 @@ class MapMakerLight():
                                             self.ra[j, :])
 
                 map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = self.tod[j, ...])
-                nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :])
+                nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = None)
 
                 histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
                 allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
@@ -216,10 +245,10 @@ class MapMakerLight():
         self.nhit   = allhits        
 
     def write_mapL1(self):
-        print("Not yet done")
+        print("Not yet done! Writing L1 map to file:")
 
     def write_mapL2(self):
-        print("Not yet done")
+        print("Not yet done! Writing L1 map to file:")
 
 if __name__ == "__main__":
     maker = MapMakerLight()
