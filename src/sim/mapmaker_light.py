@@ -19,7 +19,7 @@ class MapMakerLight():
         self.nside  = 120
         self.dpix   = 2.0 / 60.0
         self.nbin   = self.nside ** 2 
-        
+        self.template_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/templates/"
         self.input()
 
     def input(self):
@@ -76,10 +76,10 @@ class MapMakerLight():
         l2_in_path = re.search(r"\nLEVEL2_DIR\s*=\s*'(\/.*?)'", params)    # Defining regex pattern to search for level1 file path.
         self.l2_in_path = str(l2_in_path.group(1))  + f"/{self.patch_name}/"  # Extracting path
     
-        l1_out_path = re.search(r"\nL1_MAP_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level1 maps.
+        l1_out_path = re.search(r"\nL1_OUT_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level1 maps.
         self.l1_out_path = str(l1_out_path.group(1))                          # Extracting path
         
-        l2_out_path = re.search(r"\nL2_MAP_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level2 maps.
+        l2_out_path = re.search(r"\nL2_OUT_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level2 maps.
         self.l2_out_path = str(l2_out_path.group(1))                          # Extracting path
 
         
@@ -100,7 +100,7 @@ class MapMakerLight():
 
         runlist_file.close()
         param_file.close()
-        """
+        
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -112,18 +112,18 @@ class MapMakerLight():
         print("# obsID", len(self.tod_in_list))
         print("obsID file #1: ", self.tod_in_list[0])
         print("obsID #1: ", self.obsIDs_list[0])
-        """
+
     def run(self):
         self.read_paramfile()
         if self.level == 1:
             print("Loopig through runlist L1: ")
             for i in trange(len(self.tod_in_list)):
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
-                self.outfile   = self.outfile + "_map.h5"
+                self.outfile   = self.outfile
                         
                 self.readL1()
                 self.make_mapL1()
-                self.write_mapL1()
+                self.write_map()
 
             print("Through loop L1")
         else:
@@ -136,7 +136,7 @@ class MapMakerLight():
                         l2_files.append(filename)
                 self.l2_files = l2_files
                 self.make_mapL2()
-                self.write_mapL2()
+                self.write_map()
             print("Through loop L2")
 
     def readL1(self):
@@ -202,23 +202,28 @@ class MapMakerLight():
         
         histo      /= allhits
         histo       = np.nan_to_num(histo, nan = 0)
+
+        histo = histo.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)
+        histo = np.nanmean(histo, axis = 2)
+        
+        allhits = allhits.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)
+        allhits = np.nansum(allhits, axis = 2)
+        
         self.map    = histo / looplen
         self.nhit   = allhits
         print("DOne with mapmaking:")
 
     def make_mapL2(self):
         print("Makign L2 map:")
-        print(self.l2_files)
-        self.infile   = self.l2_in_path + self.l2_files[0]
-        self.readL2()
-
+        self.nsb, self.nfreq, self.nside = 4, 64, 120
         histo   = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))
         allhits = np.zeros_like(histo)    
-        px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int)
         looplen = 0
-        t = time.time()
-        for i in trange(1, len(self.l2_files) + 1):
-            print(self.infile)
+
+        for i in trange(len(self.l2_files)):
+            self.infile   = self.l2_in_path + self.l2_files[i]
+            self.readL2()
+            px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int)
             for j in range(self.nfeeds):  
                 looplen += 1
                 px_idx[j, :] = WCS.ang2pix([self.nside, self.nside], 
@@ -227,31 +232,69 @@ class MapMakerLight():
                                             self.dec[j, :], 
                                             self.ra[j, :])
                 map, nhit = self.hist(px_idx[j, :], self.tod[j, ...])
-                #print(px_idx[j, :].shape, self.tod[j, :].shape, map.shape, nhit.shape)
                 
                 histo   += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
                 allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
-            self.infile   = self.l2_in_path + self.l2_files[i]
-            self.readL2()
-            px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int)
 
-
-        print("\nLoop time: ", time.time() - t, " sec\n")
         histo      /= allhits
         histo       = np.nan_to_num(histo, nan = 0)
         self.map    = histo / looplen
         self.nhit   = allhits        
 
-    def write_mapL1(self):
-        print("Not yet done! Writing L1 map to file:")
+    def copy_mapfile(self):
+        shutil.copyfile(self.template_file, self.outfile)
 
-    def write_mapL2(self):
-        print("Not yet done! Writing L1 map to file:")
+
+    def write_map(self):
+        if self.level == 1:
+            self.map_out_path = self.l1_out_path
+        else:
+            self.map_out_path = self.l2_out_path
+
+        for template in os.listdir(self.template_path):
+            if self.patch_name in template:
+                self.template_file = self.template_path + template
+        self.outfile = self.map_out_path + f"{self.patch_name}_{self.outfile}_map.h5"            
+        self.copy_mapfile()
+
+        with h5py.File(self.outfile, "r+") as outfile:  # Write new sim-data to file.
+            try:
+                map_coadd   = outfile["map_coadd"] 
+                nhit_coadd  = outfile["nhit_coadd"] 
+                rms_coadd   = outfile["rms_coadd"] 
+                
+            except KeyError:
+                map_coadd   = outfile["map_beam"] 
+                nhit_coadd  = outfile["nhit_beam"] 
+                rms_coadd   = outfile["rms_beam"] 
+                
+            map     = outfile["map"] 
+            nhit    = outfile["nhit"] 
+            rms     = outfile["rms"] 
+
+            map_coadd[...]  = self.map
+            nhit_coadd[...] = self.nhit
+            rms_coadd[...]  = np.ones_like(self.nhit)
+
+            map[...]    = np.zeros((19, 4, 64, 120, 120))
+            nhit[...]   = np.zeros((19, 4, 64, 120, 120))
+            rms[...]    = np.zeros((19, 4, 64, 120, 120))
+    
+        outfile.close()
 
 if __name__ == "__main__":
     maker = MapMakerLight()
     #maker.read_paramfile()
     maker.run()
+
+    print(maker.map_out_path)
+    print(maker.outfile)
+    with h5py.File(maker.outfile, "r") as dummyfile:
+        map = np.array(dummyfile["map_beam"])[()]
+        nhit = np.array(dummyfile["nhit_beam"])[()]
+        print(np.allclose(map, maker.map))
+        print(np.allclose(nhit, maker.nhit))
+    dummyfile.close()
     
     """
     t0 = time.time()
