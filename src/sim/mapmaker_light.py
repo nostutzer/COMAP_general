@@ -61,12 +61,20 @@ class MapMakerLight():
 
         runlist_path = re.search(r"\nRUNLIST\s*=\s*'(\/.*?)'", params)  # Defining regex pattern to search for runlist path in parameter file.
         self.runlist_path = str(runlist_path.group(1))                  # Extracting path
-        
+
+        runlist_file = open(self.runlist_path, "r")         # Opening 
+        runlist = runlist_file.read()
+        tod_in_list = re.findall(r"\/.*?\.\w+", runlist)
+        self.tod_in_list = tod_in_list
+
+        patch_name = re.search(r"\s([a-zA-Z0-9]+)\s", runlist)
+        self.patch_name = str(patch_name.group(1))
+
         l1_in_path = re.search(r"\nTOD_OUT_DIR\s*=\s*'(\/.*?)'", params)    # Defining regex pattern to search for level1 file path.
         self.l1_in_path = str(l1_in_path.group(1))                        # Extracting path
     
         l2_in_path = re.search(r"\nLEVEL2_DIR\s*=\s*'(\/.*?)'", params)    # Defining regex pattern to search for level1 file path.
-        self.l2_in_path = str(l2_in_path.group(1))                        # Extracting path
+        self.l2_in_path = str(l2_in_path.group(1))  + f"/{self.patch_name}/"  # Extracting path
     
         l1_out_path = re.search(r"\nL1_MAP_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level1 maps.
         self.l1_out_path = str(l1_out_path.group(1))                          # Extracting path
@@ -74,18 +82,12 @@ class MapMakerLight():
         l2_out_path = re.search(r"\nL2_MAP_DIR\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for directory where to put the level2 maps.
         self.l2_out_path = str(l2_out_path.group(1))                          # Extracting path
 
-        runlist_file = open(self.runlist_path, "r")         # Opening 
-        runlist = runlist_file.read()
-        tod_in_list = re.findall(r"\/.*?\.\w+", runlist)
-        self.tod_in_list = tod_in_list
         
         tod_in_list = re.findall(r"\/.*?\.\w+", runlist)
         obsIDs_list = re.findall(r"\s\d{6}\s", runlist)
-        self.obsIDs_list = obsIDs_list
+        self.obsIDs_list = [int(i) for i in obsIDs_list]
         self.nobsIDs_list = len(self.obsIDs_list)
         
-        patch_name = re.search(r"\s([a-zA-Z0-9]+)\s", runlist)
-        self.patch_name = str(patch_name.group(1))
 
 
         patch_def_path = re.search(r"\nPATCH_DEFINITION_FILE\s*=\s*'(\/.*?)'", params)
@@ -98,7 +100,7 @@ class MapMakerLight():
 
         runlist_file.close()
         param_file.close()
-
+        """
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -110,7 +112,7 @@ class MapMakerLight():
         print("# obsID", len(self.tod_in_list))
         print("obsID file #1: ", self.tod_in_list[0])
         print("obsID #1: ", self.obsIDs_list[0])
-        
+        """
     def run(self):
         self.read_paramfile()
         if self.level == 1:
@@ -130,7 +132,7 @@ class MapMakerLight():
                 self.obsID = self.obsIDs_list[i]
                 l2_files = []
                 for filename in os.listdir(self.l2_in_path):
-                    if f"{self.obsID}" in filename:
+                    if f"{self.obsID}" in filename: 
                         l2_files.append(filename)
                 self.l2_files = l2_files
                 self.make_mapL2()
@@ -140,7 +142,7 @@ class MapMakerLight():
     def readL1(self):
         t = time.time()
         infile          = h5py.File(self.infile, "r")
-        self.tod        = np.array(infile["spectrometer/tod"])[()].astype(dtype=np.float64, copy=False) 
+        self.tod        = np.array(infile["spectrometer/tod"])[()].astype(dtype=np.float32, copy=False) 
         self.ra         = np.array(infile["spectrometer/pixel_pointing/pixel_ra"])[()]
         self.dec        = np.array(infile["spectrometer/pixel_pointing/pixel_dec"])[()]
         
@@ -164,16 +166,16 @@ class MapMakerLight():
         infile.close()
         
     def hist(self, idx, tod):
-        map = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_double)
+        map = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_float)
         nhit = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_int)
 
         maputilslib = ctypes.cdll.LoadLibrary("histutils.so.1")  # Load shared C utils library.
         float32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_float, ndim=3, flags="contiguous")   # 4D array 32-bit float pointer object.
-        float64_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_double, ndim=3, flags="contiguous")   # 4D array 32-bit float pointer object.
+        #float64_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_double, ndim=3, flags="contiguous")   # 4D array 32-bit float pointer object.
         int32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=3, flags="contiguous")       # 4D array 32-bit integer pointer object.
         int32_array1 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=1, flags="contiguous")       # 4D array 32-bit integer pointer object.
 
-        maputilslib.histogram.argtypes = [int32_array1, float64_array3, float64_array3, int32_array3,        # Specifying input types for C library function.
+        maputilslib.histogram.argtypes = [int32_array1, float32_array3, float32_array3, int32_array3,        # Specifying input types for C library function.
                                         ctypes.c_int, ctypes.c_int, ctypes.c_int]
         maputilslib.histogram(idx, tod, map, nhit, self.nsb, self.nfreq, self.nsamp, self.nbin)
         return map, nhit
@@ -181,11 +183,10 @@ class MapMakerLight():
     def make_mapL1(self):
         print("Making L1 map:") 
         histo = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
-        allhits = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))    
+        allhits = np.zeros_like(histo)    
         px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)
         looplen = 0
                 
-        t = time.time()
         for i in trange(self.nfeeds):  
             looplen += 1
             px_idx[i, :] = WCS.ang2pix([self.nside, self.nside], 
@@ -195,22 +196,10 @@ class MapMakerLight():
                                         self.ra[i, :])
             map, nhit = self.hist(px_idx[i, :], self.tod[i, ...])
             hit, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin))
-            npmap, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin), weights = self.tod[i, 3, 125, :])
-            print(nhit.shape, hit.shape)
-            """for i in range(self.nsamp):
-                print(hit[i], nhit[2, 9, i])
-            """
-            for i in range(120 * 120):
-                print(np.absolute(map[3, 125, i] - npmap[i]) / npmap[i], map[3, 125, i], npmap[i])
-            print(np.allclose(hit, nhit[3, 125, :]))
-            print(np.allclose(npmap, map[3, 125, :]))
-            sys.exit()
-            #map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[i, :], args = self.tod[i, ...])
-            #nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[i, :], args = None)
+            
             histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
-        print("\nLoop time: ", time.time() - t, " sec\n")
-
+        
         histo      /= allhits
         histo       = np.nan_to_num(histo, nan = 0)
         self.map    = histo / looplen
@@ -218,13 +207,18 @@ class MapMakerLight():
         print("DOne with mapmaking:")
 
     def make_mapL2(self):
-        print("Makign L2 map:") 
+        print("Makign L2 map:")
+        print(self.l2_files)
+        self.infile   = self.l2_in_path + self.l2_files[0]
+        self.readL2()
+
         histo   = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))
-        px_idx  = np.zeros_like(self.dec, dtype = int)
+        allhits = np.zeros_like(histo)    
+        px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int)
         looplen = 0
-        for i in trange(len(self.l2_files)):
-            self.filename   = self.l2_in_path + l2_files[i]
-            self.readL2()
+        t = time.time()
+        for i in trange(1, len(self.l2_files) + 1):
+            print(self.infile)
             for j in range(self.nfeeds):  
                 looplen += 1
                 px_idx[j, :] = WCS.ang2pix([self.nside, self.nside], 
@@ -232,13 +226,17 @@ class MapMakerLight():
                                             self.fieldcent, 
                                             self.dec[j, :], 
                                             self.ra[j, :])
-
-                map     = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = self.tod[j, ...])
-                nhit    = np.apply_along_axis(self.hist, axis = -1, arr = px_idx[j, :], args = None)
-
-                histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
+                map, nhit = self.hist(px_idx[j, :], self.tod[j, ...])
+                #print(px_idx[j, :].shape, self.tod[j, :].shape, map.shape, nhit.shape)
+                
+                histo   += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
                 allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
-        
+            self.infile   = self.l2_in_path + self.l2_files[i]
+            self.readL2()
+            px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int)
+
+
+        print("\nLoop time: ", time.time() - t, " sec\n")
         histo      /= allhits
         histo       = np.nan_to_num(histo, nan = 0)
         self.map    = histo / looplen

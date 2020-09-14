@@ -19,7 +19,7 @@ void histogram1D(int* px_idx, float* tod, float* map, int* nhit, int nbin, int n
 }
 */
 
-void histogram(int* px_idx, double* tod, double* map, int* nhit, 
+void histogram(int* px_idx, float* tod, float* map, int* nhit, 
                int nsb, int nfreq, int ntod, int nbin){
         
     int prod = nfreq * ntod;     // Precomputing index factors for flattened index
@@ -29,7 +29,6 @@ void histogram(int* px_idx, double* tod, double* map, int* nhit,
     unsigned long idx_bin;                    // Index of flattened arrays
     
     int i, j, k;
-    printf("Inside C hei hei");
     //#pragma omp parallel private(px_idx, tod, map, nhit, nsb, nfreq, ntod, nbin, prod, idx, i, j, k)
     for (i = 0; i < nsb; i++){
         for (j = 0; j < nfreq; j++){
