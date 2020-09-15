@@ -52,7 +52,7 @@ void nhits(int* px_idx, int* nhit, int nsb,
     unsigned long idx;                    // Index of flattened arrays
     
     int i, j, k;
-
+    
     for (i = 0; i < nsb; i++){
         for (j = 0; j < nfreq; j++){
             for (k = 0; k < ntod; k ++){

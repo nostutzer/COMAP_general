@@ -95,7 +95,7 @@ class MapMakerLight():
         self.cube_filename = str(cube_path.group(1))                        # Extracting path
 
         cube_out_path = re.search(r"\nDATACUBE_OUT\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
-        self.cube_out_path = str(cube_path.group(1))                                # Extracting path
+        self.cube_out_path = str(cube_out_path.group(1))                                # Extracting path
 
         obsIDs_list = re.findall(r"\s\d{6}\s", runlist)         # Regex pattern to find all obsIDs in runlist
         self.obsIDs_list = [int(i) for i in obsIDs_list]
@@ -136,7 +136,7 @@ class MapMakerLight():
             print("Loopig through runlist L1: ")
             for i in trange(len(self.tod_in_list)):
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
-                        
+                self.obsID = self.obsIDs_list[i]
                 self.readL1()
                 self.make_mapL1()
                 self.write_map()
@@ -159,7 +159,7 @@ class MapMakerLight():
             print("Processing simulation cube: ")
             for i in trange(len(self.tod_in_list)):
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
-                
+                self.obsID = self.obsIDs_list[i]
                 self.load_cube()                        
                 
                 self.make_map_cube()
@@ -213,6 +213,7 @@ class MapMakerLight():
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
         cube = np.mean(cube, axis = -1)     # Averaging over 16 frequency channels
+        cube = cube.transpose(2, 3, 0, 1)
         self.cube = cube
 
         infile          = h5py.File(self.infile, "r")
@@ -286,10 +287,9 @@ class MapMakerLight():
         
         int32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=3, flags="contiguous")           # 3D array 32-bit integer pointer object.
         int32_array1 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=1, flags="contiguous")           # 1D array 32-bit integer pointer object.
-
-        maputilslib.histogram.argtypes = [int32_array1, int32_array3,   # Specifying input types for C library function.
+        maputilslib.nhits.argtypes = [int32_array1, int32_array3,   # Specifying input types for C library function.
                                         ctypes.c_int, ctypes.c_int, ctypes.c_int]
-        maputilslib.histogram(idx, nhit, self.nsb, self.nfreq, self.nsamp, self.nbin) # Filling map and nhit by call-by-pointer.
+        maputilslib.nhits(idx, nhit, self.nsb, self.nfreq, self.nsamp, self.nbin) # Filling map and nhit by call-by-pointer.
         
         return nhit
 
@@ -365,10 +365,8 @@ class MapMakerLight():
         """
         Function mapping the simulated cube to the pixel regime of a map file. 
         """
-        print("Making cube map:") 
-        allhits = np.zeros((self.sb, self.freq, self.nside, self.nside))                                    # Empty array of hits to fill
-        #_histo = np.zeros((self.nside, self.nside))    
-        #_allhits = np.zeros((self.nside, self.nside))    
+        allhits = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))                                    # Empty array of hits to fill
+          
         px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)       # Empty array of pixel numbers
         looplen = 0                                                       # Loop iterator used for averaging over feeds
         
@@ -379,7 +377,7 @@ class MapMakerLight():
                                         self.fieldcent, 
                                         self.dec[i, :], 
                                         self.ra[i, :])              # Finding pixel number corresponding to each Ra/Dec.
-            nhit = self.nhits(px_idx[i, :], self.tod[i, ...])   # Get image and nhit
+            nhit = self.nhits(px_idx[i, :])   # Get image and nhit
 
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
         
