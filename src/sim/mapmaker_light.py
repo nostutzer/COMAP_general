@@ -161,7 +161,6 @@ class MapMakerLight():
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
                 
                 self.load_cube()                        
-                self.readL1()
                 
                 self.make_map_cube()
                 self.write_map()
@@ -214,8 +213,17 @@ class MapMakerLight():
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
         cube = np.mean(cube, axis = -1)     # Averaging over 16 frequency channels
-        cube = cube.transpose(2, 3, 1, 0)        # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).        
         self.cube = cube
+
+        infile          = h5py.File(self.infile, "r")
+        self.freq         = np.array(infile["spectrometer/frequency"])[()]
+        self.ra         = np.array(infile["spectrometer/pixel_pointing/pixel_ra"])[()]
+        self.dec        = np.array(infile["spectrometer/pixel_pointing/pixel_dec"])[()]
+        infile.close()
+        
+        self.nsb, self.nfreq    = self.freq.shape
+        self.nfeeds, self.nsamp     = self.ra.shape
+    
 
     def hist(self, idx, tod):
         """
@@ -358,8 +366,7 @@ class MapMakerLight():
         Function mapping the simulated cube to the pixel regime of a map file. 
         """
         print("Making cube map:") 
-        histo = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))  # Empty array of images to fill  
-        allhits = np.zeros_like(histo)                                    # Empty array of hits to fill
+        allhits = np.zeros((self.sb, self.freq, self.nside, self.nside))                                    # Empty array of hits to fill
         #_histo = np.zeros((self.nside, self.nside))    
         #_allhits = np.zeros((self.nside, self.nside))    
         px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)       # Empty array of pixel numbers
@@ -372,7 +379,7 @@ class MapMakerLight():
                                         self.fieldcent, 
                                         self.dec[i, :], 
                                         self.ra[i, :])              # Finding pixel number corresponding to each Ra/Dec.
-            map, nhit = self.hist(px_idx[i, :], self.tod[i, ...])   # Get image and nhit
+            nhit = self.nhits(px_idx[i, :], self.tod[i, ...])   # Get image and nhit
 
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
         
@@ -401,7 +408,7 @@ class MapMakerLight():
         for template in os.listdir(self.template_path):
             if self.patch_name in template:
                 self.template_file = self.template_path + template
-        self.outfile = self.map_out_path + f"{self.patch_name}_{self.outfile}_map.h5"            
+        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outfile}_map.h5"            
         self.copy_mapfile()
 
         with h5py.File(self.outfile, "r+") as outfile:  # Write new sim-data to file.
