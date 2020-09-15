@@ -211,11 +211,11 @@ class MapMakerLight():
             print("Normalizing simulation cube.")
             cube /= np.max(cube)    # Optional normalization of simulation cube
 
-        cube = cube.reshape(cubeshape[0] * cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
-        cube = cube.reshape(cubeshape[0] * cubeshape[1], 4, 64, 16)
+        cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
+        cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
         cube = np.mean(cube, axis = -1)     # Averaging over 16 frequency channels
-        cube = cube.transpose(1, 2, 0)        # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).        
-        self.cube = cube 
+        cube = cube.transpose(2, 3, 1, 0)        # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).        
+        self.cube = cube
 
     def hist(self, idx, tod):
         """
@@ -256,6 +256,36 @@ class MapMakerLight():
         
         return map, nhit
 
+    def nhits(self, idx):
+        """
+        Function performing the binning of the TOD in pixel bins.
+
+        Parameters:
+        --------------------
+        idx: array, dtype = ctypes.c_int
+            Array of pixel number of flattened image, 
+            i.e. the number of the pixel bin.
+        --------------------
+        Returns:
+            nhit: ndarray, dtype = ctypes.c_int
+                Array of shape (nsb, nfreq, nbin) corresponding to hits 
+                in each pixel bin.
+        """
+
+        nhit = np.zeros((self.nsb, self.nfreq, self.nbin), dtype = ctypes.c_int)    # Array to be filled with hits at each pixel.
+
+        maputilslib = ctypes.cdll.LoadLibrary("histutils.so.1")                     # Load shared C utils library.
+        
+        int32_array3 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=3, flags="contiguous")           # 3D array 32-bit integer pointer object.
+        int32_array1 = np.ctypeslib.ndpointer(dtype=ctypes.c_int, ndim=1, flags="contiguous")           # 1D array 32-bit integer pointer object.
+
+        maputilslib.histogram.argtypes = [int32_array1, int32_array3,   # Specifying input types for C library function.
+                                        ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        maputilslib.histogram(idx, nhit, self.nsb, self.nfreq, self.nsamp, self.nbin) # Filling map and nhit by call-by-pointer.
+        
+        return nhit
+
+
     def make_mapL1(self):
         """
         Function mapping the level1 TOD to the pixel regime. 
@@ -263,8 +293,6 @@ class MapMakerLight():
         print("Making L1 map:") 
         histo = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))  # Empty array of images to fill  
         allhits = np.zeros_like(histo)                                    # Empty array of hits to fill
-        #_histo = np.zeros((self.nside, self.nside))    
-        #_allhits = np.zeros((self.nside, self.nside))    
         px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)       # Empty array of pixel numbers
         looplen = 0                                                       # Loop iterator used for averaging over feeds
         
@@ -277,77 +305,17 @@ class MapMakerLight():
                                         self.ra[i, :])              # Finding pixel number corresponding to each Ra/Dec.
             map, nhit = self.hist(px_idx[i, :], self.tod[i, ...])   # Get image and nhit
 
-            #hit, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin))
-            #npmap, edge = np.histogram(px_idx[i, :], bins = self.nbin, range = (0, self.nbin), weights = np.nan_to_num(self.tod[i, 2, 9, :], nan = 0))
-            #_histo += npmap.reshape(self.nside, self.nside) 
-            #_allhits += hit.reshape(self.nside, self.nside) 
-            #print(nhit.shape, hit.shape)
-            #for i in range(120 * 120):
-            #    print(np.absolute(map[3, 125, i] - npmap[i]) / npmap[i], map[3, 125, i], npmap[i])
-            #print(np.allclose(hit, nhit[3, 125, :]))
-            #print(np.allclose(npmap, map[3, 125, :]))
-            #print(np.nanmax(np.absolute(map[3, 125, :] - npmap) / npmap))
-            #sys.exit()
-
             histo += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
-
-
-        #print("ARGMAX MAP: ", np.where(histo == np.nanmax(histo)), np.where(_histo == np.nanmax(_histo)))
-        #print("MAX MAP: ", np.nanmax(histo), np.nanmax(_histo), histo[2, 9, 50, 50], _histo[50, 50])
-        #print("MAX HIT: ", np.nanmax(allhits), np.nanmax(_allhits), allhits[2, 9, 50, 50], _allhits[50, 50])
         
         histo      /= allhits       # Weighting by hits in given pixel
-        #_histo      /= _allhits
         histo       = np.nan_to_num(histo, nan = 0) # Changing NaNs to 0.
-        #_histo       = np.nan_to_num(_histo, nan = 0)
         
         histo = histo.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)   # Averaging over 16 freq channels
         histo = np.nanmean(histo, axis = 2)
 
         allhits = allhits.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)
         allhits = np.nansum(allhits, axis = 2)
-        """
-        print("Middle of map: ", histo[2, 9, 60, 60], allhits[2, 9, 60, 60], (histo / allhits)[2, 9, 60, 60])
-        mapfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/"
-        mapfile_name = mapfile_path + "co6_map.h5"
-        mapfile = h5py.File(mapfile_name, "r")
-        x = np.array(mapfile["x"])
-        y = np.array(mapfile["y"])
-
-        x_lim, y_lim = [None,None], [None,None]
-        dx = x[1] - x[0]
-        x_lim[0] = x[0] - 0.5*self.dpix; x_lim[1] = x[-1] + 0.5*self.dpix
-        dy = y[1] - y[0]
-        y_lim[0] = y[1] - 0.5*self.dpix; y_lim[1] = y[-1] + 0.5*self.dpix
-
-        fig1, ax1 = plt.subplots(figsize=(10,6))
-
-        matplotlib.use("Agg")  # No idea what this is. It resolves an error when writing gif/mp4.
-        cmap_name = "CMRmap"
-        cmap = copy.copy(plt.get_cmap(cmap_name))
-
-        ax1.set_ylabel('Declination [deg]')
-        ax1.set_xlabel('Right Ascension [deg]')
-        aspect = dx/dy
-        allhits = np.where(allhits != 0, allhits, np.nan) # Transforming K to muK
-        histo = np.where(histo != 0, histo * 1e6, np.nan) # Transforming K to muK
-        _histo = np.where(_histo != 0, _histo * 1e6, np.nan) # Transforming K to muK
-        
-        
-        img1 = ax1.imshow(histo[2, 9, :, :].T / looplen, extent=(x_lim[0],x_lim[1],y_lim[0],y_lim[1]), interpolation='nearest',
-                        aspect=aspect, cmap=cmap, origin='lower')#,
-                        #vmin = -2e4, vmax=2e4)
-        
-        #img1 = ax1.imshow(_histo.T / looplen, extent=(x_lim[0],x_lim[1],y_lim[0],y_lim[1]), interpolation='nearest',
-        #                aspect=aspect, cmap=cmap, origin='lower')#,
-        #                #vmin = -2e4, vmax=2e4)
-        
-        ax1.set_title("Level 1, with static Tsys = 55 K")
-        cbar1 = fig1.colorbar(img1)
-        cbar1.set_label("$\mu K$")
-        plt.savefig("test2.png")
-        """
 
         self.map    = histo / looplen   # Averaging over feeds
         self.nhit   = allhits
