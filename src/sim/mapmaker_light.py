@@ -206,16 +206,18 @@ class MapMakerLight():
         cube = np.load(self.cube_filename)
         cubeshape = cube.shape
 
-        if self.norm:
-            print("Normalizing simulation cube.")
-            cube /= np.max(cube)    # Optional normalization of simulation cube
 
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
         cube = np.mean(cube, axis = -1)     # Averaging over 16 frequency channels
         cube = cube.transpose(2, 3, 0, 1)
-        self.cube = cube
 
+        if self.norm:
+            print("Normalizing simulation cube.")
+            cube /= np.max(cube)    # Optional normalization of simulation cube
+
+        self.cube = cube
+            
         infile          = h5py.File(self.infile, "r")
         self.freq         = np.array(infile["spectrometer/frequency"])[()]
         self.ra         = np.array(infile["spectrometer/pixel_pointing/pixel_ra"])[()]
@@ -342,7 +344,9 @@ class MapMakerLight():
         """Looping through all level2 files in given input directory"""
         for i in trange(len(self.l2_files)):
             self.infile   = self.l2_in_path + self.l2_files[i]
-            self.readL2()                                           # Reading current level2 file
+            self.readL2() 
+            print("MAX TOD:", np.nanmax(self.tod))                                          # Reading current level2 file
+            print("MIN TOD:", np.nanmin(self.tod), "\n")                                          # Reading current level2 file
             px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int) # Empty array to fill with pixel numbers
             for j in range(self.nfeeds):  
                 looplen += 1
@@ -355,10 +359,16 @@ class MapMakerLight():
                 
                 histo   += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
                 allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
-
+        print("MAX L2 before hit weighting:", np.nanmax(histo))                                          # Reading current level2 file
+        print("MIN L2 before hit weighting:", np.nanmin(histo), "\n")
         histo      /= allhits   # Weighting by hits in given pixel
+        print("MAX L2 after hit weighting:", np.nanmax(histo))                                          # Reading current level2 file
+        print("MIN L2 after hit weighting:", np.nanmin(histo), "\n")
         histo       = np.nan_to_num(histo, nan = 0) # Changing NaNs to 0
-        self.map    = histo / looplen               # Averaging over feeds 
+        self.map    = histo #/ looplen               # Averaging over feeds 
+        print("MAX L2 after looplen div:", np.nanmax(self.map))                                          # Reading current level2 file
+        print("MIN L2 after looplen div:", np.nanmin(self.map), "\n")
+        
         self.nhit   = allhits
 
     def make_map_cube(self):
@@ -377,14 +387,13 @@ class MapMakerLight():
                                         self.fieldcent, 
                                         self.dec[i, :], 
                                         self.ra[i, :])              # Finding pixel number corresponding to each Ra/Dec.
-            nhit = self.nhits(px_idx[i, :])   # Get image and nhit
+            nhit = self.nhits(px_idx[i, :])                         # Get image and nhit
 
             allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
         
         allhits = allhits.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)
         allhits = np.nansum(allhits, axis = 2)
-        
-        self.map    = self.cube   
+        self.map    = self.cube    
         self.nhit   = allhits
 
     def copy_mapfile(self):
@@ -420,17 +429,17 @@ class MapMakerLight():
                 nhit_coadd  = outfile["nhit_beam"] 
                 rms_coadd   = outfile["rms_beam"] 
                 
-            map     = outfile["map"] 
-            nhit    = outfile["nhit"] 
-            rms     = outfile["rms"] 
-
             map_coadd[...]  = self.map.transpose(0, 1, 3, 2)
             nhit_coadd[...] = self.nhit.transpose(0, 1, 3, 2)
             rms_coadd[...]  = np.ones_like(self.nhit)
 
-            map[...]    = np.zeros((19, 4, 64, 120, 120))
-            nhit[...]   = np.zeros((19, 4, 64, 120, 120))
-            rms[...]    = np.zeros((19, 4, 64, 120, 120))
+            #map     = outfile["map"] 
+            #nhit    = outfile["nhit"] 
+            #rms     = outfile["rms"] 
+            
+            #map[...]    = np.zeros((19, 4, 64, 120, 120))
+            #nhit[...]   = np.zeros((19, 4, 64, 120, 120))
+            #rms[...]    = np.zeros((19, 4, 64, 120, 120))
     
         outfile.close()
 
