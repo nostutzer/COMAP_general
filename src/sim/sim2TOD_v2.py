@@ -163,7 +163,6 @@ class Sim2TOD:
         array_features = np.array(infile["/hk/array/frame/features"])[()]
         tod_times      = np.array(infile["/spectrometer/MJD"])[()]
         
-        self.tod_time = np.array(infile["/spectrometer/MJD"])[()]
         self.feeds    = np.array(infile["/spectrometer/feeds"])[()]
         self.nfeeds   = len(self.feeds)
         self.ra       = np.array(infile["/spectrometer/pixel_pointing/pixel_ra"])[()]
