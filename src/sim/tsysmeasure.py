@@ -18,6 +18,7 @@ class TsysMeasure:
         self.nr_vane_times = len(vane_times)
 
         vane_active = array_features&(2**13) != 0
+        
         self.vane_time1 = vane_times[:self.nr_vane_times//2]
         self.vane_time2 = vane_times[self.nr_vane_times//2:]
         self.vane_active1 = vane_active[:self.nr_vane_times//2]
@@ -83,7 +84,7 @@ class TsysMeasure:
 
     def Tsys_of_t(self, t, tod):
         self.Tsys = np.ones((self.nfeeds, self.nbands, self.nfreqs, self.ntod), dtype=np.float32)
-        tsyslib = ctypes.cdll.LoadLibrary("/mn/stornext/d16/cmbco/comap/jonas/comap_general/sim/tsyslib.so.1")
+        tsyslib = ctypes.cdll.LoadLibrary("tsyslib.so.1")
         float64_array1 = np.ctypeslib.ndpointer(dtype=ctypes.c_double, ndim=1, flags="contiguous")
         float32_array4 = np.ctypeslib.ndpointer(dtype=ctypes.c_float, ndim=4, flags="contiguous")
         float64_array2 = np.ctypeslib.ndpointer(dtype=ctypes.c_double, ndim=2, flags="contiguous")

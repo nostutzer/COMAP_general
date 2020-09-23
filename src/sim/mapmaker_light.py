@@ -39,8 +39,11 @@ class MapMakerLight():
         parser.add_argument("-l", "--level", type = str, default = None,
                             help = """Whether the input/output file are of level1 or level2.""")
         
-        parser.add_argument("-n", "--norm", action = "store_true",
-                            help = """Normalize simulation cube to its maximum value.""")
+        parser.add_argument("-n", "--norm", type = float, default = 1.0,
+                            help = """Normalize simulation cube by input value.""")
+        
+        parser.add_argument("-r", "--rms", action = "store_false",
+                            help = """Set simulation map's rms to one.""")
         
         args = parser.parse_args()
 
@@ -58,6 +61,7 @@ class MapMakerLight():
             self.outfile        = args.outfile
             self.level          = args.level
             self.norm           = args.norm
+            self.rms            = args.rms
 
     def read_paramfile(self):
         """
@@ -90,6 +94,9 @@ class MapMakerLight():
         
         l2_out_path = re.search(r"\nL2_OUT_DIR\s*=\s*'(\/.*?)'", params)    # Regex pattern to search for directory where to put the level2 maps.
         self.l2_out_path = str(l2_out_path.group(1))                          
+        
+        map_in_path = re.search(r"\nMAP_DIR\s*=\s*'(\/.*?)'", params)    # Regex pattern to search for directory where to put the level2 maps.
+        self.map_in_path = str(map_in_path.group(1))                          
         
         cube_path = re.search(r"\nDATACUBE\s*=\s*'(\/.*?\.\w+)'", params)   # Defining regex pattern to search for simulation cube file path.
         self.cube_filename = str(cube_path.group(1))                        # Extracting path
@@ -161,7 +168,10 @@ class MapMakerLight():
                 self.infile    = self.l1_in_path + self.tod_in_list[i]
                 self.obsID = self.obsIDs_list[i]
                 self.load_cube()                        
-                
+
+                for filename in os.listdir(self.map_in_path):
+                    if f"{self.obsID}" in filename: 
+                        self.map_in_name = self.map_in_path + filename
                 self.make_map_cube()
                 self.write_map()
 
@@ -206,15 +216,12 @@ class MapMakerLight():
         cube = np.load(self.cube_filename)
         cubeshape = cube.shape
 
+        cube /= self.norm    # Normalization of cube by input value
 
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
-        cube = np.mean(cube, axis = -1)     # Averaging over 16 frequency channels
+        cube = np.mean(cube, axis = 4)     # Averaging over 16 frequency channels
         cube = cube.transpose(2, 3, 0, 1)
-
-        if self.norm:
-            print("Normalizing simulation cube.")
-            cube /= np.max(cube)    # Optional normalization of simulation cube
 
         self.cube = cube
             
@@ -227,7 +234,6 @@ class MapMakerLight():
         self.nsb, self.nfreq    = self.freq.shape
         self.nfeeds, self.nsamp     = self.ra.shape
     
-
     def hist(self, idx, tod):
         """
         Function performing the binning of the TOD in pixel bins.
@@ -345,8 +351,6 @@ class MapMakerLight():
         for i in trange(len(self.l2_files)):
             self.infile   = self.l2_in_path + self.l2_files[i]
             self.readL2() 
-            print("MAX TOD:", np.nanmax(self.tod))                                          # Reading current level2 file
-            print("MIN TOD:", np.nanmin(self.tod), "\n")                                          # Reading current level2 file
             px_idx  = np.zeros_like(self.dec, dtype = ctypes.c_int) # Empty array to fill with pixel numbers
             for j in range(self.nfeeds):  
                 looplen += 1
@@ -359,16 +363,11 @@ class MapMakerLight():
                 
                 histo   += map.reshape(self.nsb, self.nfreq, self.nside, self.nside)     
                 allhits += nhit.reshape(self.nsb, self.nfreq, self.nside, self.nside)    
-        print("MAX L2 before hit weighting:", np.nanmax(histo))                                          # Reading current level2 file
-        print("MIN L2 before hit weighting:", np.nanmin(histo), "\n")
+        
         histo      /= allhits   # Weighting by hits in given pixel
-        print("MAX L2 after hit weighting:", np.nanmax(histo))                                          # Reading current level2 file
-        print("MIN L2 after hit weighting:", np.nanmin(histo), "\n")
+        
         histo       = np.nan_to_num(histo, nan = 0) # Changing NaNs to 0
         self.map    = histo #/ looplen               # Averaging over feeds 
-        print("MAX L2 after looplen div:", np.nanmax(self.map))                                          # Reading current level2 file
-        print("MIN L2 after looplen div:", np.nanmin(self.map), "\n")
-        
         self.nhit   = allhits
 
     def make_map_cube(self):
@@ -393,9 +392,11 @@ class MapMakerLight():
         
         allhits = allhits.reshape(self.nsb, int(self.nfreq / 16), 16, self.nside, self.nside)
         allhits = np.nansum(allhits, axis = 2)
+
+        self.cube   = np.where(allhits > 0, self.cube, 0)
         self.map    = self.cube    
         self.nhit   = allhits
-
+        
     def copy_mapfile(self):
         """
         Function copying copying the template file to be filled
@@ -415,9 +416,21 @@ class MapMakerLight():
         for template in os.listdir(self.template_path):
             if self.patch_name in template:
                 self.template_file = self.template_path + template
-        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outfile}_map.h5"            
+        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outfile}_map.h5"         
         self.copy_mapfile()
 
+        if self.rms:     
+            inmap   = h5py.File(self.map_in_name, "r")
+            try:
+                inrms     = np.array(inmap["rms_coadd"])[()]
+            except KeyError:
+                inrms     = np.array(inmap["rms_beam"])[()]
+            rms     = inrms.copy()
+        else:
+            rms = np.ones_like(self.nhit)
+            rms = np.where(self.nhit > 0, rms, 0)
+            rms = rms.transpose(0, 1, 3, 2) 
+            
         with h5py.File(self.outfile, "r+") as outfile:  # Write new sim-data to file.
             try:
                 map_coadd   = outfile["map_coadd"] 
@@ -428,19 +441,11 @@ class MapMakerLight():
                 map_coadd   = outfile["map_beam"] 
                 nhit_coadd  = outfile["nhit_beam"] 
                 rms_coadd   = outfile["rms_beam"] 
-                
+            
             map_coadd[...]  = self.map.transpose(0, 1, 3, 2)
             nhit_coadd[...] = self.nhit.transpose(0, 1, 3, 2)
-            rms_coadd[...]  = np.ones_like(self.nhit)
+            rms_coadd[...]  = rms 
 
-            #map     = outfile["map"] 
-            #nhit    = outfile["nhit"] 
-            #rms     = outfile["rms"] 
-            
-            #map[...]    = np.zeros((19, 4, 64, 120, 120))
-            #nhit[...]   = np.zeros((19, 4, 64, 120, 120))
-            #rms[...]    = np.zeros((19, 4, 64, 120, 120))
-    
         outfile.close()
 
 if __name__ == "__main__":
