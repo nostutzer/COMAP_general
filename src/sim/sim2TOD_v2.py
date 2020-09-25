@@ -8,6 +8,7 @@ from tqdm import trange
 import sys 
 import argparse
 import re
+import ctypes
 from tsysmeasure import TsysMeasure
 
 class Sim2TOD:
@@ -49,14 +50,16 @@ class Sim2TOD:
             self.load_tod()
         
             print("Time: ", time.time()-t0, " sec")
-            print("Calculating Tsys: "); t0 = time.time()        
-            self.calc_tsys()
-        
-            print("Time: ", time.time()-t0, " sec")
             if self.whitenoise:
                 print("Writing noise-data to TOD: "); t0 = time.time()
+                #self.get_whitenoise()
+                self.get_calib_index()
                 self.write_white_noise()
             else:
+                print("Time: ", time.time()-t0, " sec")
+                print("Calculating Tsys: "); t0 = time.time()        
+                self.calc_tsys()
+        
                 print("Writing sim-data to TOD: "); t0 = time.time()
                 self.write_sim()
         
@@ -163,56 +166,95 @@ class Sim2TOD:
         """
         infile        = h5py.File(self.tod_in_filename, "r")
 
-        vane_angles    = np.array(infile["/hk/antenna0/vane/angle"])[()]/100.0  # Degrees
-        vane_time      = np.array(infile["/hk/antenna0/vane/utc"])[()]
-        array_features = np.array(infile["/hk/array/frame/features"])[()]
-        tod_times      = np.array(infile["/spectrometer/MJD"])[()]
+        self.vane_angles    = np.array(infile["/hk/antenna0/vane/angle"])[()]/100.0  # Degrees
+        self.vane_time      = np.array(infile["/hk/antenna0/vane/utc"])[()]
+        self.array_features = np.array(infile["/hk/array/frame/features"])[()]
+        self.tod_times      = np.array(infile["/spectrometer/MJD"])[()]
         self.freq      = np.array(infile["spectrometer/frequency"])[()]
         
+        self.dt = np.abs(self.tod_times[1] - self.tod_times[0]) * 3600 * 24 # In seconds
+        self.dnu = np.abs(self.freq[0, 1] - self.freq[0, 0])
+
         self.feeds    = np.array(infile["/spectrometer/feeds"])[()]
         self.nfeeds   = len(self.feeds)
-        self.tod            = np.array(infile["/spectrometer/tod"])[()].astype(dtype=np.float32, copy=False)
         
+        self.tod        = np.array(infile["/spectrometer/tod"])[()].astype(dtype=np.float32, copy=False)
+        self.tod_shape  = self.tod.shape 
+        self.tod_sim    = self.tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
+            
         self.ra       = np.array(infile["/spectrometer/pixel_pointing/pixel_ra"])[()]
         self.dec      = np.array(infile["/spectrometer/pixel_pointing/pixel_dec"])[()]
-        self.tod_sim  = self.tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
-        self.dt = np.abs(tod_times[1] - tod_times[0])
-        self.dnu = np.abs(self.freq[0, 1] - self.freq[0, 0])
-        
-        if tod_times[0] > 58712.03706:
-            T_hot      = np.array(infile["/hk/antenna0/vane/Tvane"])[()]
-        else:
-            T_hot      = np.array(infile["/hk/antenna0/env/ambientLoadTemp"])[()]
 
-        self.Tsys.load_data_from_arrays(vane_angles, vane_time, array_features, T_hot, self.tod, tod_times)
+        if self.tod_times[0] > 58712.03706:
+            self.T_hot      = np.array(infile["/hk/antenna0/vane/Tvane"])[()]
+        else:
+            self.T_hot      = np.array(infile["/hk/antenna0/env/ambientLoadTemp"])[()]
+
         infile.close()
+    
+    def get_calib_index(self):
+        array_features, vane_time, tod_times = self.array_features, self.vane_time, self.tod_times
+
+        vane_active = array_features&(2**13) != 0
+
+        vane_len = len(vane_time)
+        vane_time1 = vane_time[:vane_len // 2]
+        vane_time2 = vane_time[vane_len // 2:]
+        vane_active1 = vane_active[:vane_len // 2]
+        vane_active2 = vane_active[vane_len // 2:]
+        tod_start_stop = np.zeros((2, 2))
+
+        for i, vane_timei, vane_activei in [[0, vane_time1, vane_active1], [1, vane_time2, vane_active2]]:
+            if np.sum(vane_activei) > 5:  # If Tsys
+                vane_timei = vane_timei[vane_activei]
+                tod_start_idx = np.argmin(np.abs(vane_timei[0]-tod_times))
+                tod_stop_idx = np.argmin(np.abs(vane_timei[-1]-tod_times))
+                tod_start_stop[i, :] = tod_start_idx, tod_stop_idx
         
+        self.tod_start = int(tod_start_stop[0, 1] + 1)
+        self.tod_end = int(tod_start_stop[1, 0] - 1)
 
     def calc_tsys(self):
+        self.Tsys.load_data_from_arrays(self.vane_angles, self.vane_time, self.array_features, self.T_hot, self.tod, self.tod_times)
         self.Tsys.solve()
-
         self.tsys = self.Tsys.Tsys_of_t(self.Tsys.tod_times, self.Tsys.tod)
         """
         first_cal_idx = self.Tsys.calib_indices_tod[0, :]
         second_cal_idx = self.Tsys.calib_indices_tod[1, :]
         tod_start = int(first_cal_idx[1])
         tod_end = int(second_cal_idx[0])
-        self.tsys = 40
         """
-    
+        #self.tsys = 40
+        
+    def get_whitenoise(self):
+        self.nfeed, self.nsb, self.nfreq, self.nsamp = self.tsys.shape
+        self.noise = np.ones((self.nfeed, self.nsb, self.nfreq, self.nsamp), dtype=np.float32)
+        print("hii")
+        whitenoiselib = ctypes.cdll.LoadLibrary("/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/whitenoiselib.so.1")
+        float32_array4 = np.ctypeslib.ndpointer(dtype=ctypes.c_float, ndim=4, flags="contiguous")
+        print("hoi")
+        whitenoiselib.whitenoise.argtypes = [float32_array4, float32_array4, ctypes.c_float, 
+                                            ctypes.c_float, ctypes.c_int, ctypes.c_int, 
+                                            ctypes.c_int, ctypes.c_int]
+        print("hei")
+        whitenoiselib.whitenoise(self.tsys, self.noise, self.dt, self.dnu,
+                        self.nfeeds, self.nbands, self.nfreqs, self.nsamp)
+        print("hehe")
+        self.noise[:, :, :, self.calib_indices_tod[0,0]:self.calib_indices_tod[0,1]] = np.nan
+        self.noise[:, :, :, self.calib_indices_tod[1,0]:self.calib_indices_tod[1,1]] = np.nan
+        return self.noise
+
     def write_sim(self):
         nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
         pixvec = np.zeros_like(dec, dtype = int)
-        first_cal_idx = self.Tsys.calib_indices_tod[0, :]
-        second_cal_idx = self.Tsys.calib_indices_tod[1, :]
-        tod_start = int(first_cal_idx[1])
-        tod_end = int(second_cal_idx[0])
 
+        tod_start, tod_end = self.tod_start, self.tod_end
+        
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
             pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
             # Update tod_sim values.
-            self.tod_sim[i, :, :, tod_start + 1:tod_end - 1] *= 1 + cube[ ..., pixvec[i, tod_start + 1:tod_end - 1]] / tsys[i, :, :, tod_start + 1:tod_end - 1]
+            self.tod_sim[i, :, :, tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
             #self.tod_sim[i, :, :,tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys
         self.tod_sim = np.where(self.tsys > 0, self.tod_sim, 0)
         self.tod_sim = np.where(self.tsys < 200, self.tod_sim, 0)
@@ -223,26 +265,16 @@ class Sim2TOD:
         outfile.close()
 
     def write_white_noise(self):
-        nside, dpix, fieldcent, ra, dec, tod, cube, tsys, nfeeds = self.nside, self.dpix, self.fieldcent, self.ra, self.dec, self.tod, self.cube, self.tsys, self.nfeeds
-        shape = tsys.shape
-
-        noise   = np.random.normal(0, np.abs(tsys).reshape(np.prod(shape)) / np.sqrt(self.dt * self.dnu)).reshape(shape)
+        tod_start, tod_end = self.tod_start, self.tod_end
+        shape = self.tod_shape
         
-        pixvec = np.zeros_like(dec, dtype = int)
-        first_cal_idx = self.Tsys.calib_indices_tod[0, :]
-        second_cal_idx = self.Tsys.calib_indices_tod[1, :]
-        tod_start = int(first_cal_idx[1])
-        tod_end = int(second_cal_idx[0])
+        A = np.nanmean(self.tod[..., tod_start:tod_end], axis = -1)
+        print("MEANS: ", self.dt, self.dnu * 1e9, A[0, 1, 125])
+        noise   = np.random.normal(0, 1, np.prod(shape)).reshape(shape)
+        noise   = 1 / np.sqrt(self.dt * self.dnu * 1e9) * noise
 
-        for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
-            # Create a vector of the pixel values which responds to the degrees we send in.
-            pixvec[i, :] = WCS.ang2pix([nside, nside], [-dpix, dpix], fieldcent, dec[i, :], ra[i, :])     
-            # Update tod_sim values.
-            self.tod_sim[i, :, :, tod_start + 1:tod_end - 1] *= 1 + noise[i, :, :, tod_start + 1:tod_end - 1] / tsys[i, :, :, tod_start + 1:tod_end - 1]
+        self.tod_sim[..., tod_start:tod_end] = A[..., np.newaxis] * (1 + noise[..., tod_start:tod_end])
         
-        self.tod_sim = np.where(self.tsys > 0, self.tod_sim, 0)
-        self.tod_sim = np.where(self.tsys < 200, self.tod_sim, 0)
-
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
