@@ -59,7 +59,8 @@ class Sim2TOD:
                 print("Time: ", time.time()-t0, " sec")
                 print("Calculating Tsys: "); t0 = time.time()        
                 self.calc_tsys()
-        
+                self.get_calib_index()
+                
                 print("Writing sim-data to TOD: "); t0 = time.time()
                 self.write_sim()
         
