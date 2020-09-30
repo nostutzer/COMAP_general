@@ -58,7 +58,7 @@ class MapMakerLight():
             raise NameError(message)
         else:
             self.param_file     = args.param
-            self.outfile        = args.outfile
+            self.outname        = args.outfile
             self.level          = args.level
             self.norm           = args.norm
             self.rms            = args.rms
@@ -416,7 +416,7 @@ class MapMakerLight():
         for template in os.listdir(self.template_path):
             if self.patch_name in template:
                 self.template_file = self.template_path + template
-        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outfile}_map.h5"         
+        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outname}_map.h5"         
         self.copy_mapfile()
 
         if self.rms:     

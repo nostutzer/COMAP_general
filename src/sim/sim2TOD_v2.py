@@ -33,7 +33,7 @@ class Sim2TOD:
         print("Time: ", time.time()-t0, " sec")
         print("Loading Cube: "); t0 = time.time()
         self.load_cube()
-        
+        print("MAX: ", np.max(self.cube))
         print("Time: ", time.time()-t0, " sec")
         print("Loopig through runlist: "); t0 = time.time()
         for i in trange(len(self.tod_in_list)):
@@ -60,7 +60,7 @@ class Sim2TOD:
                 print("Calculating Tsys: "); t0 = time.time()        
                 self.calc_tsys()
                 self.get_calib_index()
-                
+
                 print("Writing sim-data to TOD: "); t0 = time.time()
                 self.write_sim()
         
@@ -257,8 +257,8 @@ class Sim2TOD:
             # Update tod_sim values.
             self.tod_sim[i, :, :, tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
             #self.tod_sim[i, :, :,tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys
-        self.tod_sim = np.where(self.tsys > 0, self.tod_sim, 0)
-        self.tod_sim = np.where(self.tsys < 200, self.tod_sim, 0)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], 0)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], 0)
 
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
