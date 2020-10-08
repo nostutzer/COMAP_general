@@ -63,7 +63,7 @@ class Sim2TOD:
 
                 print("Writing sim-data to TOD: "); t0 = time.time()
                 self.write_sim()
-        
+
         print("Run time: ", time.time() - t, " sec")
         
 
@@ -147,7 +147,7 @@ class Sim2TOD:
         cube = np.load(self.cube_filename)
         cubeshape = cube.shape
 
-        cube /= self.norm    # Normalization of cube by input value
+        cube *= 1e-6 * self.norm    # Normalization of cube by input value
 
         cube = cube.reshape(cubeshape[0] * cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.transpose(1, 2, 0)  # Reorder dims such that the x/y dim is last, and the frequencies first (easier to deal with later).
@@ -257,8 +257,8 @@ class Sim2TOD:
             # Update tod_sim values.
             self.tod_sim[i, :, :, tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
             #self.tod_sim[i, :, :,tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys
-        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], 0)
-        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], 0)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
 
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
@@ -270,12 +270,13 @@ class Sim2TOD:
         shape = self.tod_shape
         
         A = np.nanmean(self.tod[..., tod_start:tod_end], axis = -1)
-        print("MEANS: ", self.dt, self.dnu * 1e9, A[0, 1, 125])
+        print("Generating whitenoise:")
         noise   = np.random.normal(0, 1, np.prod(shape)).reshape(shape)
         noise   = 1 / np.sqrt(self.dt * self.dnu * 1e9) * noise
-
+        print("Filling TOD:")
         self.tod_sim[..., tod_start:tod_end] = A[..., np.newaxis] * (1 + noise[..., tod_start:tod_end])
         
+        print("Saving new TOD to file:")
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
