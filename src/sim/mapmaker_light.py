@@ -45,6 +45,10 @@ class MapMakerLight():
         parser.add_argument("-r", "--rms", action = "store_false",
                             help = """Set simulation map's rms to one.""")
         
+        parser.add_argument("-c", "--combinedname", type = str, default = None,
+                            help = """Custom name of which to copy rms""")
+        
+
         args = parser.parse_args()
 
         if args.param == None:
@@ -61,7 +65,13 @@ class MapMakerLight():
             self.outname        = args.outfile
             self.level          = args.level
             self.norm           = args.norm
-            self.rms            = args.rms
+            self.copy_rms       = args.rms
+            self.combinedname   = args.combinedname 
+        
+        if self.combinedname == None:
+            self.combined_map = False 
+        else:
+            self.combined_map = True
 
     def read_paramfile(self):
         """
@@ -104,6 +114,9 @@ class MapMakerLight():
         cube_out_path = re.search(r"\nDATACUBE_OUT\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
         self.cube_out_path = str(cube_out_path.group(1))                                # Extracting path
 
+        mapname = re.search(r"\nMAP_NAME\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for output simulation cube file path.
+        self.map_name = str(mapname.group(1))                                # Extracting path
+        
         obsIDs_list = re.findall(r"\s\d{6}\s", runlist)         # Regex pattern to find all obsIDs in runlist
         self.obsIDs_list = [int(i) for i in obsIDs_list]
         self.nobsIDs_list = len(self.obsIDs_list)               # Number of obsIDs in runlist
@@ -164,16 +177,27 @@ class MapMakerLight():
             print("Through loop L2")
         else:
             print("Processing simulation cube: ")
-            for i in trange(len(self.tod_in_list)):
-                self.infile    = self.l1_in_path + self.tod_in_list[i]
-                self.obsID = self.obsIDs_list[i]
-                self.load_cube()                        
+            if self.combined_map:
+                    
+                    self.load_cube()                  
 
-                for filename in os.listdir(self.map_in_path):
-                    if f"{self.obsID}" in filename: 
-                        self.map_in_name = self.map_in_path + filename
-                self.make_map_cube()
-                self.write_map()
+                    self.map_in_name = self.map_in_path + self.combinedname
+                    self.make_map_cube()
+                    self.write_map()
+            else:    
+                for i in trange(len(self.tod_in_list)):
+                    self.infile    = self.l1_in_path + self.tod_in_list[i]
+                    self.obsID = self.obsIDs_list[i]
+                    self.load_cube()                  
+
+                    print("INMAP PATH:", self.map_in_path)
+                    for filename in os.listdir(self.map_in_path):
+                        if (f"{self.obsID}" in filename) and (self.map_name in filename):
+                            print("hei ", filename) 
+                            self.map_in_name = self.map_in_path + filename
+                            break
+                    self.make_map_cube()
+                    self.write_map()
 
             print("Cube processed!")
 
@@ -216,15 +240,16 @@ class MapMakerLight():
         cube = np.load(self.cube_filename)
         cubeshape = cube.shape
 
-        cube /= self.norm    # Normalization of cube by input value
-
+        cube *= 1e-6 * self.norm    # Normalization of cube by input value
+        #cube /= self.norm    # Normalization of cube by input value
+        print("MAX CUBE:", np.nanmax(cube))
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 1024)  # Flatten the x/y dims, and split the frequency (depth) dim in 4 sidebands.
         cube = cube.reshape(cubeshape[0], cubeshape[1], 4, 64, 16)
         cube = np.mean(cube, axis = 4)     # Averaging over 16 frequency channels
         cube = cube.transpose(2, 3, 0, 1)
 
         self.cube = cube
-            
+        """ 
         infile          = h5py.File(self.infile, "r")
         self.freq         = np.array(infile["spectrometer/frequency"])[()]
         self.ra         = np.array(infile["spectrometer/pixel_pointing/pixel_ra"])[()]
@@ -233,7 +258,7 @@ class MapMakerLight():
         
         self.nsb, self.nfreq    = self.freq.shape
         self.nfeeds, self.nsamp     = self.ra.shape
-    
+        """
     def hist(self, idx, tod):
         """
         Function performing the binning of the TOD in pixel bins.
@@ -374,8 +399,9 @@ class MapMakerLight():
         """
         Function mapping the simulated cube to the pixel regime of a map file. 
         """
+        """
         allhits = np.zeros((self.nsb, self.nfreq, self.nside, self.nside))                                    # Empty array of hits to fill
-          
+        
         px_idx      = np.zeros_like(self.dec, dtype = ctypes.c_int)       # Empty array of pixel numbers
         looplen = 0                                                       # Loop iterator used for averaging over feeds
         
@@ -394,9 +420,34 @@ class MapMakerLight():
         allhits = np.nansum(allhits, axis = 2)
 
         self.cube   = np.where(allhits > 0, self.cube, 0)
-        self.map    = self.cube    
         self.nhit   = allhits
+        self.map    = self.cube    
+        """
+        inmap   = h5py.File(self.map_in_name, "r")
+        print("INMAP", self.map_in_name)
+
+        try:
+            inhits    = np.array(inmap["nhit_coadd"])[()]
+        except KeyError:
+            inhits    = np.array(inmap["nhit_beam"])[()]
+
+        self.nhit   = inhits.copy()
+        self.cube   = self.cube.transpose(0, 1, 3, 2) 
+        self.cube   = np.where(self.nhit > 0, self.cube, 0)
+        self.map    = self.cube  
         
+        if self.copy_rms:     
+            try:
+                inrms   = np.array(inmap["rms_coadd"])[()]
+            except KeyError:
+                inrms   = np.array(inmap["rms_beam"])[()]
+            self.rms    = inrms.copy()
+        else:
+            rms         = np.ones_like(self.nhit)
+            rms         = np.where(self.nhit > 0, rms, 0)
+            self.rms    = rms.transpose(0, 1, 3, 2) 
+        inmap.close()
+
     def copy_mapfile(self):
         """
         Function copying copying the template file to be filled
@@ -416,21 +467,17 @@ class MapMakerLight():
         for template in os.listdir(self.template_path):
             if self.patch_name in template:
                 self.template_file = self.template_path + template
-        self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outname}_map.h5"         
+        
+        if self.combined_map:
+            name = ""
+            for i in self.obsIDs_list:
+                name = name + f"_{i}" 
+            self.outfile = self.map_out_path + f"{self.patch_name}{name}_map.h5"   
+        else:
+            self.outfile = self.map_out_path + f"{self.patch_name}_{self.obsID}_{self.outname}_map.h5"         
+        print(self.outfile)
         self.copy_mapfile()
 
-        if self.rms:     
-            inmap   = h5py.File(self.map_in_name, "r")
-            try:
-                inrms     = np.array(inmap["rms_coadd"])[()]
-            except KeyError:
-                inrms     = np.array(inmap["rms_beam"])[()]
-            rms     = inrms.copy()
-        else:
-            rms = np.ones_like(self.nhit)
-            rms = np.where(self.nhit > 0, rms, 0)
-            rms = rms.transpose(0, 1, 3, 2) 
-            
         with h5py.File(self.outfile, "r+") as outfile:  # Write new sim-data to file.
             try:
                 map_coadd   = outfile["map_coadd"] 
@@ -442,9 +489,9 @@ class MapMakerLight():
                 nhit_coadd  = outfile["nhit_beam"] 
                 rms_coadd   = outfile["rms_beam"] 
             
-            map_coadd[...]  = self.map.transpose(0, 1, 3, 2)
-            nhit_coadd[...] = self.nhit.transpose(0, 1, 3, 2)
-            rms_coadd[...]  = rms 
+            map_coadd[...]  = self.map
+            nhit_coadd[...] = self.nhit #.transpose(0, 1, 3, 2)
+            rms_coadd[...]  = self.rms 
 
         outfile.close()
 
