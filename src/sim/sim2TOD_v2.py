@@ -4,12 +4,19 @@ import matplotlib.pyplot as plt
 import WCS
 import time
 import shutil
-from tqdm import trange
 import sys 
 import argparse
 import re
+import os
 import ctypes
+import healpy as hp
+from tqdm import trange
 from tsysmeasure import TsysMeasure
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+#from astropy_healpix import HEALPix
+from astropy.io import fits
+
 
 class Sim2TOD:
     def __init__(self):
@@ -29,11 +36,18 @@ class Sim2TOD:
         t = time.time()
         print("Processing Parameterfile: "); t0 = time.time()
         self.read_paramfile()
+        if self.groundpickup:
+            print("Time: ", time.time()-t0, " sec")
+            print("Loading Ground Pickup template: "); t0 = time.time()
+            self.load_ground_template()
+            print("MAX: ", np.max(self.ground_temp))
+
+        else:
+            print("Time: ", time.time()-t0, " sec")
+            print("Loading Cube: "); t0 = time.time()
+            self.load_cube()
+            print("MAX: ", np.max(self.cube))
         
-        print("Time: ", time.time()-t0, " sec")
-        print("Loading Cube: "); t0 = time.time()
-        self.load_cube()
-        print("MAX: ", np.max(self.cube))
         print("Time: ", time.time()-t0, " sec")
         print("Loopig through runlist: "); t0 = time.time()
         for i in trange(len(self.tod_in_list)):
@@ -55,6 +69,16 @@ class Sim2TOD:
                 #self.get_whitenoise()
                 self.get_calib_index()
                 self.write_white_noise()
+
+            elif self.groundpickup:
+                print("Time: ", time.time()-t0, " sec")
+                print("Calculating Tsys: "); t0 = time.time()        
+                self.calc_tsys()
+                self.get_calib_index()
+
+                print("Writing ground-pickup data to TOD: "); t0 = time.time()
+                self.write_groundpickup()
+
             else:
                 print("Time: ", time.time()-t0, " sec")
                 print("Calculating Tsys: "); t0 = time.time()        
@@ -83,6 +107,9 @@ class Sim2TOD:
         parser.add_argument("-w", "--whitenoise", action = "store_true",
                             help = """Add white noise to TOD.""")
         
+        parser.add_argument("-g", "--groundpickup", action = "store_true",
+                            help = """Add ground pickup from far-sidelobes to TOD.""")
+
         args = parser.parse_args()
         
         if args.param == None:
@@ -92,6 +119,8 @@ class Sim2TOD:
             self.param_file     = args.param
             self.norm           = args.norm
             self.whitenoise     = args.whitenoise
+            self.groundpickup   = args.groundpickup 
+            
         
     def read_paramfile(self):
         """
@@ -112,6 +141,9 @@ class Sim2TOD:
         
         cube_path = re.search(r"\nDATACUBE\s*=\s*'(\/.*?\.\w+)'", params)   # Defining regex pattern to search for simulation cube file path.
         self.cube_filename = str(cube_path.group(1))                        # Extracting path
+
+        ground_path = re.search(r"\nGROUND_TEMP\s*=\s*'(\/.*?\.\w+)'", params)   # Defining regex pattern to search for simulation cube file path.
+        self.ground_filename = str(ground_path.group(1))                        # Extracting path
 
         runlist_file = open(self.runlist_path, "r")         # Opening 
         runlist = runlist_file.read()
@@ -136,8 +168,9 @@ class Sim2TOD:
         print("TOD in:", self.tod_in_path)
         print("TOD out:", self.tod_out_path)
         print("Cube:", self.cube_filename)
-        print("# obsID", len(self.tod_in_list))
+        print("Number of obsIDs:", len(self.tod_in_list))
         print("obsID #1: ", self.tod_in_list[0])
+        print("Ground temp:", self.ground_filename)
         
 
     def load_cube(self):
@@ -154,6 +187,17 @@ class Sim2TOD:
         cube[0, :, :] = cube[0, ::-1, :]    # Flipping sideband 0 and 2 to fit the TOD
         cube[2, :, :] = cube[2, ::-1, :]
         self.cube = cube 
+
+    def load_ground_template(self):
+        """
+        Read the template for far-sidelobe ground pickup.
+        """
+        hdul = fits.open(self.ground_filename)
+
+        self.Nside = int(hdul[1].header["NSIDE"])
+        hdul.close()
+
+        self.ground_temp = hp.read_map(self.ground_filename) * self.norm
 
     def make_outfile(self):
         """
@@ -182,9 +226,13 @@ class Sim2TOD:
         self.tod        = np.array(infile["/spectrometer/tod"])[()].astype(dtype=np.float32, copy=False)
         self.tod_shape  = self.tod.shape 
         self.tod_sim    = self.tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
-            
-        self.ra       = np.array(infile["/spectrometer/pixel_pointing/pixel_ra"])[()]
-        self.dec      = np.array(infile["/spectrometer/pixel_pointing/pixel_dec"])[()]
+        
+        if self.groundpickup:
+            self.az       = np.array(infile["/spectrometer/pixel_pointing/pixel_az"])[()]
+            self.el      = np.array(infile["/spectrometer/pixel_pointing/pixel_el"])[()]
+        else:
+            self.ra       = np.array(infile["/spectrometer/pixel_pointing/pixel_ra"])[()]
+            self.dec      = np.array(infile["/spectrometer/pixel_pointing/pixel_dec"])[()]
 
         if self.tod_times[0] > 58712.03706:
             self.T_hot      = np.array(infile["/hk/antenna0/vane/Tvane"])[()]
@@ -282,6 +330,27 @@ class Sim2TOD:
             data[...] = self.tod_sim
         outfile.close()
 
+    def write_groundpickup(self):
+        nside, az, el, tod, ground_temp, tsys, nfeeds = self.nside, self.az, self.el, self.tod, self.ground_temp, self.tsys, self.nfeeds
+        pixvec = np.zeros_like(az, dtype = int)
+
+        tod_start, tod_end = self.tod_start, self.tod_end
+
+        for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
+            # Create a vector of the pixel values which responds to the degrees we send in.
+
+            pixvec[i, :] = hp.ang2pix(self.Nside, theta = el[i, :], phi = az[i, :], lonlat = True)
+            # Update tod_sim values.
+            self.tod_sim[i, :, :, tod_start:tod_end] *= (1 + ground_temp[np.newaxis, np.newaxis, pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
+                                                        - np.nanmean(ground_temp[np.newaxis, np.newaxis, pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]))
+
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
+
+        with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
+            data = outfile["/spectrometer/tod"] 
+            data[...] = self.tod_sim
+        outfile.close()
 
 if __name__ == "__main__":
     sim2tod = Sim2TOD()
