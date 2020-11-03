@@ -1,0 +1,45 @@
+\documentclass{aastex62}
+
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+\usepackage{amsmath}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{wasysym}
+
+
+\begin{document}
+
+\title{How the power spectra and transfer functions were generated}
+
+\author{Nils-Ole Stutzer}
+\section*{Adding additional signal to the TOD}
+In order to estimate a pipeline transfer function we need a before and after view of the sky map of an observed field, preferably with some well recognized structures. To add such structures we use a simulation box which represents additional CO signal (in this case normalized to a maximum brightness of $1\,\mathrm{K}$) from some populated N-body simulation. Then we use the actual TOD of some obsID(s) and use the pointing information of the telescope to scan over the cube and add additional signal from it to the old TOD. The resulting TOD with added simulations $P_\mathrm{new}$ can be written as 
+\begin{equation}
+    P_\mathrm{new}(\vec{\theta}) = P_\mathrm{old}(\vec{\theta}) + P_\mathrm{sim}(\vec{\theta}) = G k_B \Delta \nu T_\mathrm{sys}(\vec{\theta}) \left(1 + \frac{T_\mathrm{sim}(\vec{\theta})}{T_\mathrm{sys}(\vec{\theta})}\right),\label{eq:TODnew}
+\end{equation}
+with the old TOD (from an actual observation) $P_\mathrm{old} = G k_B \Delta \nu T_\mathrm{sys}$ for some gain $G$ and system temperature $T_\mathrm{sys}$. The brightness temperature of the simulation box content is given by $T_\mathrm{sim}$, and the $\vec{\theta}$ represents the pointing of the telescope at a given time.
+
+\section*{Power spectra and transfer functions}
+The transfer function $T(\vec{k})$ can be modelled by how the power spectrum of an input simulation is altered by the pipeline filters. We in this case model it as 
+\begin{equation}
+    P_\mathrm{out}(\vec{k}) = T(\vec{k})P_\mathrm{in} + P_\mathrm{noise}(\vec{k}),\label{eq:T}
+\end{equation}
+where $P_\mathrm{out}$ is the noise weighted pseudo-power spectrum (hereafter only refered to power spectrum for simplicity) of the map produced by a TOD with added simulations (in Eq. (\ref{eq:TODnew}) refered to as $P_\mathrm{new})$. $P_\mathrm{in}$ is the power spectrum of the simulation itself with the sky portion not observed by the telescope being masked out and using the same noise weighting as for $P_\mathrm{out}$ (i.e. the same rms map). This power spectrum is illustrated in the upper left of Fig. \ref{fig:fig0}. The transfer function is given by $T$ and estimates the fraction of the input structure in $P_\mathrm{in}$ that makes it through the pipeline at scale $\vec{k} = (k_\parallel, k_\bot)$. For the noise power spectrum $P_\mathrm{noise}$ we need something that has the same noise properties as the TOD with added simulations. This is seen in the lower left plot in Fig. \ref{fig:fig0}. For now we have just used the power spectrum of the map from the TOD without any added simulations, since it is noise dominated and has the same noise properties as the TOD with additional signal. The upper right plot in Fig. \ref{fig:fig0} is the difference of the power spectra of the TOD with added signal and that of the noise, aiming to remove the noise from $P_\mathrm{out}$. The transfer function estimate $T(\vec{k}) = \frac{P_\mathrm{out}-P_\mathrm{noise}}{P_\mathrm{in}}$, seen in the lower right plot of Fig. \ref{fig:fig0}, is then simply the ratio of the top plots in Fig. \ref{fig:fig0}.
+
+In order to produce the plots in Fig. \ref{fig:fig0} three obsIDs (15325, 15332 and 15275), all being Lissajous scans, were used. After adding simulated signal (as described in Eq. (\ref{eq:TODnew}) to the old TOD, different pipeline filters may be applied to estimate their effect on the transfer function (in the case of Fig. \ref{fig:fig0} the default settings were used).
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_default.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen} are used here.}
+    \label{fig:fig0}
+\end{figure}
+
+
+
+\end{document}

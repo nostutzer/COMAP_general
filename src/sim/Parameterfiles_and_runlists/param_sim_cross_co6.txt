@@ -3,6 +3,10 @@ NUMFREQ                      = 64      # Number of frequencies across band
 IS_SIM                       = .false.
 SIM_TSYS                     = 40.d0
 
+# sim2TOD
+SIM_LEVEL1_DIR               =  '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/sim'
+DATACUBE                     =  '/mn/stornext/d16/cmbco/comap/protodir/cube_real.npy'
+
 # CES mod
 RUNLIST                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/runlist_sim_cross_co6.txt' 
 LEVEL1_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1'

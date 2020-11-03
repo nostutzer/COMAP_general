@@ -1,0 +1,77 @@
+\documentclass{aastex62}
+
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+\usepackage{amsmath}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{wasysym}
+
+
+\begin{document}
+
+\title{Transfer functions with different l2gen parameters}
+
+\author{Nils-Ole Stutzer}
+\section*{}
+The following plots show the (noise weighted pseudo-) power spectra of a simulation data-cube, the TOD (from three different obsIDs) with added simulations, the TOD without simulations as well as the corresponding transfer functions. For each 4x4 plot (Fig \ref{fig:fig0}-\ref{fig:fig5}) different \texttt{l2gen} settings are used. In Fig. \ref{fig:fig0} the result of the default settings of \texttt{l2gen} are used, while Fig. \ref{fig:fig1}, \ref{fig:fig2} and \ref{fig:fig3} show the result after turning off the poly filter, using a polyfilter of 0th order and turning off the PCA filter (each one with only one change to the default \texttt{l2gen} settings). Figure \ref{fig:fig4} and \ref{fig:fig5} are produced with a mapmaker highpass cut of $\nu = 0.02$ Hz and $\nu = 0.04$ Hz respectively. To illustrate the loss of signal due to a highpass cut in the mapmaker the difference between the transfer functions of the default settings and each of the two highpass cuts tested, are shown in Fig. \ref{fig:fig6}. It seems that the highpass cut of $\nu = 0.02$ Hz only results in a minor loss of up to a few percent, while the $\nu = 0.04$ Hz cut results in up to a $10-20\%$ loss. However, one may still be able to save some "bad" data using a $\nu = 0.04$ Hz cut at the price of some signal loss. 
+
+Lastly to get a more comparative view of the different \texttt{l2gen} filter combinations, a one-dimensional version of the transfer functions is provided in Fig. \ref{fig:fig7} with different combinations of the poly- and PCA filter. Note that in this case all transfer functions are produced with a highpass cut of $0.02$ Hz (default in Marie's paper).
+
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_default.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen} are used here.}
+    \label{fig:fig0}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_wopoly.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen}, but without the polyfilter, are used here.} 
+    \label{fig:fig1}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_0poly.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen}, but with 0th order polyfiltering, are used here.} 
+    \label{fig:fig2}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_wopca.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen}, but without PCA filter, are used here.} 
+    \label{fig:fig3}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_002Hz.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen}, but with a highpass cut of $\nu = 0.02$ Hz in the mapmaker, are used here.} 
+    \label{fig:fig4}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = \linewidth]{PS_004Hz.png}
+    \caption{The (noise weighted pseudo-) power spectrum of the simulation (\textbf{upper left}), the TOD without added simulations (\textbf{lower left}) being our noise approximation, the TOD with added simulations and subtracted noise spectrum (\textbf{upper right}) as well as the corresponding transfer function (\textbf{lower right}). Default settings of \texttt{l2gen}, but with a highpass cut of $\nu = 0.04$ Hz in the mapmaker, are used here.} 
+    \label{fig:fig5}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = 0.55\linewidth]{PS_default_002Hz_diff.png}
+    \includegraphics[width = 0.55\linewidth]{PS_default_004Hz_diff.png}
+    \caption{The difference between the transfer function corresponding to the default settings (no highpass filtering in the mapmaking) and the transfer function corresponding to $\nu = 0.02$ Hz and $\nu = 0.04$ Hz respectively (left to right).} 
+    \label{fig:fig6}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = 0.7\linewidth]{PS_1D_diffcombo.png}
+    \caption{One-dimensional version of the pipeline transfer function with different settings of the poly- and PCA filer in \texttt{l2gen}. All transfer function are in this case produced with a highpass cut $\nu = 0.02$ Hz in the mapmaker.} 
+    \label{fig:fig7}
+\end{figure}
+
+
+\end{document}

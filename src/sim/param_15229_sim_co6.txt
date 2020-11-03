@@ -1,0 +1,310 @@
+# General
+NUMFREQ                      = 64      # Number of frequencies across band
+IS_SIM                       = .false.
+SIM_TSYS                     = 40.d0
+
+# sim2TOD
+TOD_IN_DIR                  =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1'
+TOD_OUT_DIR                 =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/sim/dynamicTsys'
+DATACUBE                    =   '/mn/stornext/d16/cmbco/comap/protodir/cube_real.npy'
+DATACUBE_OUT                =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/cube/'
+L1_OUT_DIR			        =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/level1/'                  
+L2_OUT_DIR			        =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/level2/'                  
+
+# CES mod
+RUNLIST                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/runlist_15229_co6.txt' 
+LEVEL1_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/sim/dynamicTsys'
+LEVEL2_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys'
+LEVEL3_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level3/Ka' 
+
+# tod2comap
+MAP_DIR			             = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/level2/'
+SIM_DIR                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sims/'
+CG_LIM                       = 1e-8
+MAP_NAME                     = 'map'
+SIM_NAME                     = 'sim'
+TARGET_NAME                  = 'co6'
+COORDINATE_SYSTEM            = 'celestial' # 'celestial'/'horizontal'
+NUM_DET                      = 19
+OBSID_MAPS                   = .true.
+SCAN_MAPS		     = .false.
+N_NOISE_SIMULATIONS          = 0
+CORR_MATRIX_LOC              = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/cholesky_of_corr_matrix.h5'
+BRUTE_FORCE_SIM              = 1      # Make simulations brute-force from correlation matrix of data or not
+USE_ACCEPT		     = .false.
+JK_DEF_FILE		     = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/jk_list.txt' 
+NUCUT_HIGH 		     = 0.0  # frequency of cutoff for highpass filter (in Hz)
+
+
+# Accept mod
+ACCEPT_PARAM_FOLDER   = '/mn/stornext/d16/cmbco/comap/protodir/accept_mod/'
+ACCEPT_MOD_PARAMS     = 'accept_params.py'
+STATS_LIST            = 'stats_list.py'
+
+WEATHER_FILEPATH      = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/weather_list.txt'
+
+ACCEPT_DATA_FOLDER    = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/'
+ACCEPT_DATA_ID_STRING = ''
+SCAN_STATS_FROM_FILE  = False # True
+SHOW_ACCEPT_PLOT      = True
+
+# Patch mod
+PATCH_DEFINITION_FILE        = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/patches_celestial.txt'
+
+# ephem_mod
+EPHEMERIS_FILE               = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/ephem_data.h5'
+
+# scan_detect specific parameters
+AUX_SAVED_DATA                 = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/obj/' 
+OFFSET_START                   = 2
+OFFSET_END                     = 2
+EARLIEST_OBSID                 = 5954 #4179
+REQUIRE_TSYS                   = True
+MINIMUM_SCAN_LENGTH            = 2  #min
+
+
+# l2gen
+L2_SAMPRATE                  = 50           # Target sample rate in Hz
+REPROCESS_ALL_FILES          = .true.
+VERBOSE_PRINT                = .true.
+RETURN_DIAG_L2_FILES         = .false.
+L2_COORDINATE_SYSTEM         = 'celestial'
+FREQUENCY_MASK               = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/comap_freqmask_1024channels.txt' 
+NUM_SIDEBAND                 = 4
+GAIN_NORMALIZATION_NU        = 0.01     #0.01  # 0.003 # Lowpass filter frequency in Hz
+GAIN_NORMALIZATION_ALPHA     = 4     # Steepness index for lowpass filter apodization
+BANDPASS_FILTER_ORDER        = 1     # polyfilter order per sideband    
+TRIM_NUMSAMP_AT_ENDOFFILE    = 5     # Remove last N samples; typically NaNs
+N_PCA_COMPONENTS             = 4    
+PCA_ERROR_TOLERANCE          = 1.d-6
+PCA_MAX_ITERATIONS           = 30    
+PCA_NSIGMA_REMOVE            = 1.d0
+REMOVE_ELEVATION_TEMP        = .true.
+
+# mask frequencies that are outliers in various diagnostics
+MASK_OUTLIERS                = 0      # 1 = true, 0 = false
+VARIANCE_MAX                 = 1.15d0 # Maximum allowed variance over 1/Btau
+CORRELATION_MAX              = 0.1d0  # Maximum allowed correlation between two channels
+MASK_EDGE_CORRS              = .true.
+NSIGMA_EDGE_CORRS            = 3.d0
+CORRELATION_CUT              = 5.d0   # N_sigma 
+MEAN_CORRELATION_CUT         = 5.d0   # mean corr between a channel and the rest of the sb
+VARIANCE_CUT                 = 5.d0   # VAR/VAR0
+MEAN_ABS_CORRELATION_CUT     = 5.d0   
+MEDIAN_CUT                   = 5.d0
+N_NEIGHBOR                   = 2
+NEIGHBOR_FACTOR              = 3.d0 / 5  # i.e. from 5 to 3 sigma
+REMOVE_OUTLIERS              = .true. # remove outliers in calcuating mean and sigma for cut
+MIN_ACCEPTRATE               = 0.1d0 # 0.8d0  # (this cut is now to be moved to accept-mod, keep a cut at 0.1 for practical purposes) minimum acceptrate of a sideband (smaller acceptrates leads to the whole sb being masked)
+
+BOX_OFFSETS                  = '32 128 512'
+STRIPE_OFFSETS               = '32 128 1024'
+PROD_OFFSET                  = 16
+NSIGMA_PROD_BOX              = '6.0 5.0 4.0'
+NSIGMA_PROD_STRIPE           = '6.0 5.0 4.0'
+NSIGMA_MEAN_BOX              = '6.0 10.0 14.0'
+NSIGMA_CHI2_BOX              = 6
+NSIGMA_CHI2_STRIPE           = 6
+
+
+######### OLD STUFF, some might be used #############
+
+# General
+FREQUENCY_BAND               = 'W'
+DEBUG                        = 0
+OUTPUT_DIR                   = 'output_default'
+
+# ces_validate stuff
+ACCEPT_LIST_INPUT            = '/projects/quiet/calib_data/sigurdkn/pix_rejects_W.txt'
+MAKE_BASELINE_ACCLIST        = .false.
+APPLY_CES_DIODE_CUTS         = .true.
+WEATHER_CHISQ_THRESHOLD      = 5
+WEATHER_CES_FRACTION         = 0.4
+SIGMA0_THRESHOLD             = 5
+TYPE_B_CHISQ_THRESHOLD       = 5
+FKNEE_THRESHOLD              = 5     # In sigma, evaluated per diode
+FKNEE_ABS_THRESHOLD_T        = 1.   # In Hz, absolute cut
+FKNEE_ABS_THRESHOLD_P        = 0.2   # In Hz, absolute cut
+NU_LOWPASS_THRESHOLD         = 7     # In Hz
+NU_HIGHPASS_SCAN_THRESHOLD   = 5     # Scan frequency multiplier
+TOD_CHISQ_THRESHOLD          = 4
+TOD_ABSMAX_THRESHOLD         = 7
+TOD_AZ_BINSIZE               = 0.5
+TOD_AZ_MAX_CHISQ             = 4
+MAP_MIN_MEAN_CHISQ           = 0.5
+MAP_MAX_MEAN_CHISQ           = 2.0
+MAP_ABSMAX_THRESHOLD         = 5.0
+CES_MIN_DIODE_ACCEPT_RATIO   = 0.4
+MAX_NOISE_ALPHA              =  1000
+MIN_NOISE_ALPHA              = -1000
+APEX_MAX_PWV                 = 5
+VALIDATE_HIGHFREQ_CHISQ      = .false.
+VALIDATE_6HZ_CHISQ           = .false.
+FFT_CHISQ_SCAN_THRESHOLD     = 10.
+FFT_CHISQ_HIGH_THRESHOLD     = 20.
+FFT_CHISQ_LOW_THRESHOLD      = 10.
+FFT_CHISQ_1.2HZ_THRESHOLD    = 20.
+FFT_OUTLIER_THRESHOLD        = 5
+FFT_CHISQ_THRESHOLD          = 4
+FFT_CHISQ_SPIKE_MIN_FREQ     = 0.2
+FFT_CHISQ_SPIKE_MAX_FREQ     = 9.5
+FFT_CHISQ_SPIKE_DELTA_FREQ   = 0.1
+FFT_CHISQ_SPIKE_THRESHOLD    = 7.5
+JUMP_FINDER_FRACTIONAL_JUMP_THRESHOLD = 1
+FIRST_CES                    = 1
+LAST_CES                     = 1000000
+
+# Filter mod
+APPLY_HIGHPASS_FILTER        = .false.
+APPLY_LOWPASS_FILTER         = .true.
+APPLY_AZIMUTH_FILTER         = .true.
+APPLY_SPIKEFILTER            = .false.
+SPIKELIST                    = '' 
+USE_PRECOMPUTED_FILTER       = .true.
+NU_HIGHPASS_IN_SCANFREQ      = 2.5
+NU_LOWPASS                   = 9.5
+ALPHA_HIGHPASS               = -20
+ALPHA_LOWPASS                = -300
+AZIMUTH_FILTER_ORDER         = 15
+IGNORE_ONEOVERF              = .false.
+IGNORE_DIODE_CORRELATIONS    = .false.
+IGNORE_DIODE_CORRFREQ        = .false.
+NOISE_CORR_FUNC_CUTOFF       = 1e-5
+CORRELATION_LENGTH_CAP       = -1
+
+# tod2map
+COMPONENTS                   = 'Q,U'
+COMPONENT_THRESHOLD          = 0.25
+ACCEPTLIST                   = '/projects/quiet/level3/W/ces/accept.txt'
+JACKKNIVES                   = 'all,mjd,inout,typeb,sss,10hz,el,dk{0:45:2},az{0:180:2},tenc,dtenc,cryo,dcryo,gain,pwv,wind,tamb,fknee,sigma0,modfreq,mab,weather,qu,leak'
+NSIDE_OUT                    = 512
+SPARSE_MAPS                  = .true.
+OUTPUT_TOTAL                 = 'bin'
+OUTPUT_CES                   = 'bin'
+OUTPUT_ASSEMBLY              = 'none'
+OUTPUT_STATUS                = .false.
+OUTPUT_PSEUDO_CLS            = .true.
+OUTPUT_NOBS                  = .false.
+NUMPROCS_PER_COVAR           = 1
+FFT3_MAGIC_NUMBER_FILE       = '/projects/quiet/calib_data/hke/fft3_magic_numbers_230810.txt'
+APPROXIMATE_GROUND           = .true.
+TASK_ITERATOR                = 'smart'
+FULLSKY                      = .false.
+MASK_DEGRADE                 = 0
+CHECKPOINTING                = .false.
+MAP_FILETYPE                 = 'hdf'
+FFT_CONVOLUTION              = .true.
+FFT_CONVOLUTION_NPAD         = 5000
+SERIAL                       = .false.
+# Needed to get null-tests to pass.
+HIGHPASS_MIN_CAP             = 2.5
+LOWPASS_MAX_CAP              = 12.5
+AZORDER_MIN_CAP              = 0
+
+# tod2map pcl
+LMIN_PSEUDO_CLS              = 26
+LMAX_PSEUDO_CLS              = 1175
+DL_PSEUDO_CLS                = 50
+
+# Todsim mod
+ANALYZE_SIMULATED_DATA       = .false.
+REPLACE_DATA_WITH_SIM        = .false.
+ADD_SIGNAL                   = .true.
+ADD_WHITE_NOISE              = .true.
+ADD_ONEOVERF_NOISE           = .true.
+ADD_DIODE_CORR               = .true.
+INPUT_SKY_MAPS               = '/projects/quiet/auxilliary/sims/W/1024'    # MUST BE UPDATED!!!!
+NUM_SKY_MAPS                 = 50
+NUM_SIM_PER_SKY              = 1
+SIM_OVERSAMPLING             = 2
+
+# Apex mod
+APEXFILE                     = '/projects/quiet/calib_data/APEX/W_BAND_APEX.dat'
+
+# Assembly mod
+ASSEMBLY_LIST                = '/projects/quiet/auxilliary/assembly_list_W.txt'
+
+
+# # ces_detect specific parameters
+# LEVEL1_FILELIST              = "l1files.txt"
+# CES_RESOLUTION               = 200
+# CES_MIN_DUR                  = 300
+# CAS_MIN_DUR                  = 10
+# RASTER_MIN_DUR               = 10
+# AZ_STALL_TIMEOUT             = 30
+# EL_STALL_TIMEOUT             = 150
+# AZ_CHANGE_LIM                = 3d-4
+# EL_CHANGE_LIM                = 3d-4
+# DK_CHANGE_LIM                = 3d-3
+# AZ_STALL_LIM                 = 1d-5
+# EL_STALL_LIM                 = 1d-5
+# AZ_RASTER_TIMEOUT            = 300
+# AZ_RASTER_LIM                = 1d-5
+# AZ_RASTER_AMP_LIM            = 0.035
+# EL_RASTER_LIM                = 0.035
+# CES_OBJECT                   = .true.
+# PHASE_SWITCH_FILE            = '/projects/quiet/calib_data/chicago/osamu_offset2.txt'
+# CES_DELAY                    = 60
+
+
+# Gain mod
+GAIN_FILE                    = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/Tsys_gain.hdf5'
+
+# Module mod
+DETECTOR_FILE                = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/Ka_detectors.txt'
+
+# Pointing mod
+MOUNT_MODEL_FORMAT           = "W"
+MOUNT_MODEL_FILE             = "/projects/quiet/auxilliary/w91_mount_oslo_v3.txt"
+APPLY_MOUNT_MODEL            = .true.
+APPLY_COLLIMATION_CORRECTION = .true.
+APPARENT_POINTING_CORRECTION = .true.
+AZ_CURRENT_FILE              = '/projects/quiet/calib_data/sigurdkn/az_current_skn1.txt'
+
+# Typeb mod
+TYPEB_CORRECT                = .true.
+TYPEB_FILE                   = "/projects/quiet/calib_data/jonathaz/typeb_data/wband/adc_anomaly_info.txt-w91-multi-v4.txt"
+#TYPEB_FILE                   = "/projects/quiet/calib_data/sigurdkn/type_b_Q_v2.txt" # Q
+
+
+# l3gen
+APPLY_SCANMASK               = .true.
+SCANMASK_WIDTH               = 1d-4     # Window around scanfreq to cut, in Hz
+SCANFREQ_MIN                 = 0.01666  # One minute period
+SCANFREQ_MAX                 = 0.2      # Five seconds period
+L3_FAST                      = .false.
+NOISE_EST_LOW_NU             = 0
+NOISE_EST_HIGH_NU            = 10
+ONEOVERF_BIAS_THRESHOLD      = 1000000  #(turned off)
+FIX_HIGHPASS_FREQ            = -1.d0
+FIX_LOWPASS_FREQ             = -1.d0
+SEED                         = 7384891
+TSYS_LOC                     = '/mn/stornext/d16/cmbco/comap/protodir/auxiliary/Tsys.hdf5'
+
+# point_scan
+SOURCE_POS                   = 'venus'
+SOURCE_AMP                   = 100
+SOURCE_STOKES                = '1,0,0'
+FIT_WHAT                     = 'poss,amps,fwhm'
+STRONG_SOURCE                = .true.
+FIT_RANGE                    = 1.0
+FIT_PLOT_RAD                 = 4.0
+FIT_DIODES                   = '*'
+SOURCE_TEMPLATE              = 'none'
+
+# target mod
+STATIC_JACKKNIFE_DEFS        = "static_knives.txt"
+
+# point fit
+ONLY_APPLY_MOUNT_MODEL       = .false.
+PFIT_FIT_WHAT                = 'col,denc,aztilt,eltilt,ellflex,encflex'
+
+# mask mod
+MASK_DIR                     = '/projects/quiet/auxilliary/masks_Wband/v2'
+
+# pixaccept
+MAXCUT_NCES                  = 20
+
+# I2QU leakage correction
+I2QU_OPERATION               = 0 ! 0 = no correction, 1 = full correction, 2 = output correction map
+I2QU_CORR_MAPFILE            = '/usit/abel/u1/hke/quiet_data/external_data/WMAP7/maps/WMAP7_W_map.fits'
