@@ -306,7 +306,7 @@ class Sim2TOD:
             self.tod_sim[i, :, :, tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
             #self.tod_sim[i, :, :,tod_start:tod_end] *= 1 + cube[ ..., pixvec[i, tod_start:tod_end]] / tsys
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
-        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 300, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
 
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
@@ -345,7 +345,7 @@ class Sim2TOD:
                                                         - np.nanmean(ground_temp[np.newaxis, np.newaxis, pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]))
 
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
-        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
+        self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 300, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
 
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
