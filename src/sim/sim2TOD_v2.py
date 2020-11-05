@@ -59,17 +59,18 @@ class Sim2TOD:
         
             self.make_outfile()
         
-            print("Time: ", time.time()-t0, " sec")
+            print("Copy time: ", time.time()-t0, " sec")
             print("Loading TOD: "); t0 = time.time()        
             self.load_tod()
         
-            print("Time: ", time.time()-t0, " sec")
+            print("Loading time: ", time.time()-t0, " sec")
             if self.whitenoise:
-                print("Writing noise-data to TOD: "); t0 = time.time()
                 #self.get_whitenoise()
                 self.get_calib_index()
+                print("Writing noise-data to TOD: "); t0 = time.time()
                 self.write_white_noise()
-
+                print("Writing noise time: ", time.time() - t0, " sec ")
+                
             elif self.groundpickup:
                 print("Time: ", time.time()-t0, " sec")
                 print("Calculating Tsys: "); t0 = time.time()        
@@ -203,7 +204,52 @@ class Sim2TOD:
         """
         Create a copy of the input level1 file, such that we can simply replace the TOD with simulated data later.
         """
-        shutil.copyfile(self.tod_in_filename, self.tod_out_filename)
+        #shutil.copyfile(self.tod_in_filename, self.tod_out_filename)
+        infile = h5py.File(self.tod_in_filename, "r")
+        outfile = h5py.File(self.tod_out_filename, "w")
+        
+        in_hk       = infile["hk"]
+        in_pointing = infile["pointing"]
+        in_spectrometer = infile["spectrometer"]
+
+        out_comap    = outfile.create_group("comap")
+
+        path0 = "hk/"
+        for i in in_hk.keys():
+            path1 = path0 + i + "/"
+            for j in in_hk[i].keys():
+                path2 = path1 + j + "/"
+                for k in infile[path2]:
+                        name = path2 + k
+                        #print(name)
+                        data = np.array(infile[name])[:]
+                        #print(data.dtype)
+                        outfile.create_dataset(name, data = data)
+                        #infile.copy(str(name), out_hk)
+
+        path0 = "pointing/"
+        for i in in_pointing.keys():
+            name = path0 + i
+            data = np.array(infile[name])[:]
+            outfile.create_dataset(name, data = data)
+
+        path0 = "spectrometer/"
+        for i in in_spectrometer.keys():
+            if i == "pixel_pointing":
+                path1 = path0 + "pixel_pointing/"
+                for j in infile[path1]:
+                    name = path1 + j
+                    data = np.array(infile[name])[:]
+                    outfile.create_dataset(name, data = data)
+            elif i == "tod":
+                continue
+            else:
+                name = path0 + i 
+                data = np.array(infile[name])[:]
+                outfile.create_dataset(name, data = data)
+        
+        infile.close()
+        outfile.close()
 
     def load_tod(self):
         """
@@ -224,6 +270,10 @@ class Sim2TOD:
         self.nfeeds   = len(self.feeds)
         
         self.tod        = np.array(infile["/spectrometer/tod"])[()].astype(dtype=np.float32, copy=False)
+        
+        if self.tod.dtype != np.float32:
+            raise ValueError(f"The TOD input dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
+
         self.tod_shape  = self.tod.shape 
         self.tod_sim    = self.tod.copy()  # The simulated data is, initially, simply a copy of the original TOD.
         
@@ -308,29 +358,53 @@ class Sim2TOD:
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
 
+        if self.tod_sim.dtype != np.float32:
+            raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
+        
+        outfile = h5py.File(self.tod_out, "r+")
+        outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
+        outfile.close()
+        """
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
         outfile.close()
-
+        """
     def write_white_noise(self):
         tod_start, tod_end, nfeeds = self.tod_start, self.tod_end, self.nfeeds
         shape = self.tod_shape
-        
+        print("Finding average:"); t = time.time()
         A = np.nanmean(self.tod[..., tod_start:tod_end], axis = -1)
-        print("Generating whitenoise:")
+        print("Time to to find average: ", time.time() - t, " sec")
+        #print("Generating white noise:")
         #noise   = np.random.normal(0, 1, np.prod(shape)).reshape(shape)
         #noise   = 1 / np.sqrt(self.dt * self.dnu * 1e9) * noise
-        print("Filling TOD:")
+        #print("Time to generate noise:")
+        print("Filling TOD:"); t = time.time()
         for i in range(nfeeds):
-            noise = np.random.normal(0, 1, np.prod(shape[1:])).reshape(shape[1:])
+            noise = np.random.normal(0, 1, np.prod(shape[1:])).reshape(shape[1:]).astype(dtype=np.float32, copy=False)
+            noise   = 1 / np.sqrt(self.dt * self.dnu * 1e9) * noise
             self.tod_sim[i, :, :, tod_start:tod_end] = A[i, :, :, np.newaxis] * (1 + noise[..., tod_start:tod_end])
+        #self.tod_sim[..., tod_start:tod_end] = A[..., np.newaxis] * (1 + noise[..., tod_start:tod_end])
         
-        print("Saving new TOD to file:")
+        
+        print("Time to fill TOD: ", time.time() - t, "sec")
+
+        print("Saving new TOD to file:"); t = time.time()
+        if self.tod_sim.dtype != np.float32:
+            raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
+
+        outfile = h5py.File(self.tod_out, "r+")
+        outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
+        outfile.close()
+        """
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
         outfile.close()
+        """
+        print("Time to save new TOD: ", time.time() - t, "sec")
+
 
     def write_groundpickup(self):
         nside, az, el, tod, ground_temp, tsys, nfeeds = self.nside, self.az, self.el, self.tod, self.ground_temp, self.tsys, self.nfeeds
@@ -349,11 +423,18 @@ class Sim2TOD:
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] > 0, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
         self.tod_sim[:, :, :, tod_start:tod_end] = np.where(self.tsys[:, :, :, tod_start:tod_end] < 200, self.tod_sim[:, :, :, tod_start:tod_end], np.nan)
 
+        if self.tod_sim.dtype != np.float32:
+            raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
+
+        outfile = h5py.File(self.tod_out, "r+")
+        outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
+        outfile.close()
+        """
         with h5py.File(self.tod_out_filename, "r+") as outfile:  # Write new sim-data to file.
             data = outfile["/spectrometer/tod"] 
             data[...] = self.tod_sim
         outfile.close()
-
+        """
 if __name__ == "__main__":
     sim2tod = Sim2TOD()
     sim2tod.run()
