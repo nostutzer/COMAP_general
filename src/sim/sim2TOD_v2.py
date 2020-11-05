@@ -361,7 +361,7 @@ class Sim2TOD:
         if self.tod_sim.dtype != np.float32:
             raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
         
-        outfile = h5py.File(self.tod_out, "r+")
+        outfile = h5py.File(self.tod_out_filename, "r+")
         outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
         outfile.close()
         """
@@ -394,7 +394,7 @@ class Sim2TOD:
         if self.tod_sim.dtype != np.float32:
             raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
 
-        outfile = h5py.File(self.tod_out, "r+")
+        outfile = h5py.File(self.tod_out_filename, "r+")
         outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
         outfile.close()
         """
@@ -415,7 +415,7 @@ class Sim2TOD:
         for i in trange(nfeeds):  # Don't totally understand what's going on here, it's from Håvards script.
             # Create a vector of the pixel values which responds to the degrees we send in.
 
-            pixvec[i, :] = hp.ang2pix(self.Nside, theta = el[i, :], phi = az[i, :], lonlat = True)
+            pixvec[i, :] = hp.ang2pix(self.Nside, theta = az[i, :], phi = el[i, :], lonlat = True)
             # Update tod_sim values.
             self.tod_sim[i, :, :, tod_start:tod_end] *= (1 + ground_temp[np.newaxis, np.newaxis, pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]
                                                         - np.nanmean(ground_temp[np.newaxis, np.newaxis, pixvec[i, tod_start:tod_end]] / tsys[i, :, :, tod_start:tod_end]))
@@ -426,7 +426,7 @@ class Sim2TOD:
         if self.tod_sim.dtype != np.float32:
             raise ValueError(f"The TOD output dataset must be of dtype float32! The given TOD has dtype {self.tod.dtype}.")
 
-        outfile = h5py.File(self.tod_out, "r+")
+        outfile = h5py.File(self.tod_out_filename, "r+")
         outfile.create_dataset("spectrometer/tod", data = self.tod_sim, dtype = np.float32)
         outfile.close()
         """
