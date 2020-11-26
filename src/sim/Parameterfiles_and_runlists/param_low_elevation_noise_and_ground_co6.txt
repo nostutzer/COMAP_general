@@ -13,7 +13,7 @@ L1_OUT_DIR			        =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/m
 L2_OUT_DIR			        =   '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/maps/sim/level2/'                  
 
 # CES mod
-RUNLIST                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/runlist_CESliss_lowEL_co6.txt' 
+RUNLIST                      = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/runlist_bade_co6.txt' 
 LEVEL1_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level1/sim/whitenoise/ground_temp'
 LEVEL2_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/whitenoise/ground_temp'
 LEVEL3_DIR                   = '/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level3/Ka' 
