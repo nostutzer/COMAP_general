@@ -29,8 +29,10 @@ class Destriper():
         
         if param_file != None:
             self.read_paramfile()
+        else:
+            self.input()
         
-        if self.scheme not in ["destriper", "weighted", "avg"]:
+        if self.scheme not in ["destriper", "weighted", "avg", "baseline_only"]:
             print("Please provide one of the allowed mapmaker schemes: 'destriper', 'weithed' or 'avg'")
             sys.exit()
         
@@ -146,19 +148,15 @@ class Destriper():
         self.freq_idx   = freq_idx
     
         if freq_idx != None:
-            self.tod          = self.tod_buffer.reshape(self.Nsamp, self.Nsb * self.Nfreq) 
-            self.sigma0       = self.sigma0_buffer.reshape(self.Nscans, self.Nsb * self.Nfreq)
-            self.mask         = self.mask_buffer.reshape(self.Nscans, self.Nsb * self.Nfreq)
-
-            self.tod           = self.tod[:, freq_idx] 
-            self.sigma0        = self.sigma0[:, freq_idx] 
-            self.mask          = self.mask[:, freq_idx] 
+            self.tod           = self.tod_buffer[:, freq_idx] 
+            self.sigma0        = self.sigma0_buffer[:, freq_idx] 
+            self.mask          = self.mask_buffer[:, freq_idx] 
             
         else:
-            self.tod          = self.tod_buffer[:, sb, freq] 
-            self.sigma0       = self.sigma0_buffer[:, sb, freq]
-            self.mask          = self.mask[:, freq_idx] 
-            
+            self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+            self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
+            self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+
         if self.masking:
             #print("Masking:", self.mask)
             t0 = time.time()
@@ -210,22 +208,26 @@ class Destriper():
                         tod_lens.append(Nsamp)
                     names.append(filename)
                     infile.close()
-        
         self.Nfeed = Nfeed
         self.Nsb = Nsb
         self.Nfreq = Nfreq
-        
-        infile = h5py.File(self.infile_path + names[0], "r")
+        self.names = names
+
+        infile = h5py.File(self.infile_path + names[1], "r")
         freq       = np.array(infile["nu"])[()]
         freq       = freq[0, ...]
         freq[0, :] = freq[0, ::-1]
         freq[2, :] = freq[2, ::-1]   
         self.freq  = freq
+        self.tod_first = np.array(infile["tod"])[:-1,...]
+        self.tod_first[:, 0, :, :] = self.tod_first[:, 0, ::-1, :]
+        self.tod_first[:, 2, :, :] = self.tod_first[:, 2, ::-1, :]
         infile.close()
         
         print("Number of scans:", Nscans)
         
         tod_lens = np.array(tod_lens)
+        self.tod_lens = tod_lens
         tod_cumlen = np.zeros(Nscans * Nfeed + 1).astype(int)
         tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
         Nsamp_tot = np.sum(tod_lens)
@@ -240,6 +242,8 @@ class Destriper():
         Nbaseline_tot = 0
         Nperbaselines = [0]
         Nperscan      = [0]
+
+        self.start_stop = np.zeros((2, Nscans), dtype = int)
         
         for i in range(Nscans):
             infile = h5py.File(self.infile_path + names[i], "r")
@@ -299,7 +303,9 @@ class Destriper():
             
             start = tod_cumlen[i * Nfeed]
             end   = tod_cumlen[(i + 1) * Nfeed]
-            
+            self.start_stop[0, i] = start
+            self.start_stop[1, i] = end
+
             tod = tod.transpose(0, 3, 1, 2)
             tod = tod.reshape(tod.shape[0] * tod.shape[1], Nsb, Nfreq)
             self.tod_buffer[start:end, ...]  = tod
@@ -314,6 +320,7 @@ class Destriper():
         #self.tod_buffer          = tod_buffer #- np.nanmean(tod_buffer, axis = 0) 
         self.sigma0_buffer       = self.sigma0_buffer.reshape(Nscans * Nfeed, Nsb, Nfreq)
         self.mask_buffer         = self.mask_buffer.reshape(Nscans * Nfeed, Nsb, Nfreq)
+        
         #self.time         = time_buffer      #np.trim_zeros(time_buffer)
         self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
         self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
@@ -322,7 +329,56 @@ class Destriper():
         self.Nsamp        = Nsamp_tot
         self.Nscans       = Nscans * Nfeed
         self.tod_cumlen   = tod_cumlen
+
+        self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
+        self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
+        self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
+
+        if self.scheme == "baseline_only":
+            self.baseline_buffer = self.tod_buffer.copy()
+            self.corrected_tod_buffer = self.tod_buffer.copy()
+
+
+    def fill_corrected_tod_buffer(self):
+        print("Filling corrected TOD buffer:")
+        self.corrected_tod_buffer[:, self.freq_idx] = self.tod - self.F.dot(self.a)
+        self.baseline_buffer[:, self.freq_idx]      = self.F.dot(self.a)
+
+    def save_baseline_tod(self):
+        print("Saving baselines:")
+        tod_lens = self.tod_lens
+        tod_lens = tod_lens[::self.Nfeed]
+
+        outfile_path = self.infile_path + "baselines/"
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+            print(outfile_path)
         
+        for i in range(len(self.names)):
+            start, stop = self.start_stop[:, i]
+
+            baseline      = self.baseline_buffer[start:stop, :]
+            corrected_tod = self.corrected_tod_buffer[start:stop, :]
+            tod_old       = self.tod_buffer[start:stop, :]
+
+            shape = baseline.shape
+            
+            baseline = baseline.reshape(shape[0], 4, 64)
+            baseline = baseline.reshape(self.Nfeed, tod_lens[i], 4, 64)
+            baseline = baseline.transpose(0, 2, 3, 1)
+
+            corrected_tod = corrected_tod.reshape(shape[0], 4, 64)
+            corrected_tod = corrected_tod.reshape(self.Nfeed, tod_lens[i], 4, 64)
+            corrected_tod = corrected_tod.transpose(0, 2, 3, 1)
+            
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+            infile = h5py.File(outfile_path + new_name, "w")
+            infile.create_dataset("tod_baseline", data = baseline)
+            infile.create_dataset("tod_corrected", data = corrected_tod)
+            infile.close()
+            
     def initialize_P_and_F(self):
         #print("Get pixel index:")
         t0 = time.time()
@@ -477,18 +533,16 @@ class Destriper():
 
         return temp0 - temp2
 
-    def get_destriped_map(self):
-        P, PT, C_n_inv, F, tod, Nsamp, eps, PCP_inv = self.P, self.PT, self.C_n_inv, self.F, self.tod, self.Nsamp, self.eps, self.PCP_inv
-        
+    def get_baselines(self):
         self.get_FT_C()
         self.get_FT_C_P_PCP()
         self.get_PT_C()
         
-        self.FT_C_F = self.FT_C.dot(F)
-        self.PT_C_F = self.PT_C.dot(F)
-        
+        self.FT_C_F = self.FT_C.dot(self.F)
+        self.PT_C_F = self.PT_C.dot(self.F)
+
         Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax)
-        b  = self.b(tod)
+        b  = self.b(self.tod)
         
         print("Initializing CG:")
         self.a, info = linalg.cg(Ax, b)
@@ -496,6 +550,12 @@ class Destriper():
         
         self.counter = 0
         self.counter2 = 0
+
+    
+    def get_destriped_map(self):
+        P, PT, C_n_inv, F, tod, Nsamp, eps, PCP_inv = self.P, self.PT, self.C_n_inv, self.F, self.tod, self.Nsamp, self.eps, self.PCP_inv
+
+        self.get_baselines()
 
         m = PCP_inv.dot(PT).dot(C_n_inv).dot(tod - F.dot(self.a))
         self.m = m.reshape(self.Nside, self.Nside)
@@ -560,7 +620,11 @@ class Destriper():
             self.get_noise_weighted_map()
         else:
             self.get_bin_averaged_map()
-            
+    
+    def make_baseline_only(self):
+        self.get_baselines()
+        self.fill_corrected_tod_buffer()
+    
     def get_hits(self):
         #self.get_P()
         P, PT, Nside, Nsamp = self.P, self.PT, self.Nside, self.Nsamp
@@ -691,14 +755,15 @@ if __name__ =="__main__":
     #paramfiles = [paramfile0, paramfile1]  
     #paramfiles  = [paramfile1]
    
-    paramfiles = ["/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_10s_wosim_large_dataset_co6.txt"]
+    #paramfiles = ["/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_10s_wosim_large_dataset_co6.txt"]
     #paramfiles = ["/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_10s_large_dataset_co6.txt"]
-
+    #paramfiles = ["/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_liss_CES_mix_freqmask_co6.txt"]
+    paramfiles  = ["/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_save_baseline_test_co6.txt"]
     
     eps      = 0
     #freq_idx = [113]
     freq_idx = range(4 * 64)
-    N_proc = 20
+    N_proc = 10
     
     for pfile in paramfiles:
         t = time.time()
@@ -716,26 +781,40 @@ if __name__ =="__main__":
             print("\n", "Processing frequency number:", idx, "\n")
             t = time.time()
             destr.run(freq_idx = idx)
-            destr.make_map()
-            print("\n", "Making map: ", time.time() - t, "sec \n")
 
-            destr.get_rms()
-            print("\n", "Making rms map: ", time.time() - t, "sec \n")
+            if destr.scheme == "baseline_only":
+                destr.make_baseline_only()
+                return 0
+            else:
+                destr.make_map()
+                print("\n", "Making map: ", time.time() - t, "sec \n")
 
-            destr.get_hits()
-            print("\n", "Making hit map: ", time.time() - t, "sec \n")
+                destr.get_rms()
+                print("\n", "Making rms map: ", time.time() - t, "sec \n")
 
-            maps = np.array([destr.m, destr.rms, destr.hits])
-            maps = np.where(np.isnan(maps) == False, maps, 0)
-            return np.array([destr.m, destr.rms, destr.hits])
+                destr.get_hits()
+                print("\n", "Making hit map: ", time.time() - t, "sec \n")
 
+                maps = np.array([destr.m, destr.rms, destr.hits])
+                maps = np.where(np.isnan(maps) == False, maps, 0)
+                return np.array([destr.m, destr.rms, destr.hits])
+        
         with multiproc.Pool(processes = N_proc) as pool:
-
             full_map = pool.map(dummy, freq_idx)
         pool.close()
         pool.join()
+        
+        #dummy(0)
         print("Finished frequency loop:", time.time() - t0, "sec")
 
+        print("Find baselines only:")
+        destr.save_baseline_tod()
+        print("Baselines only:", time.time() - t0, "sec")
+        
+        
+        sys.exit()
+        
+        
         print("Formating output:")
         
         full_map = np.array(full_map)
