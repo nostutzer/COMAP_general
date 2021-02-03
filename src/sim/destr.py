@@ -16,7 +16,7 @@ import os
 import re
 
 class Destriper():
-    def __init__(self, eps, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
+    def __init__(self, eps = 0, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
         self.infile_path    = infile_path
         self.outfile_path   = outfile_path
         self.obsID_map      = obsID_map 
@@ -123,6 +123,9 @@ class Destriper():
         masking = re.search(r"\nUSE_MASK\s*=\s*([01])", params)  # Regex pattern to search for patch definition file.
         self.masking = bool(int(masking.group(1)))
         
+        Nproc = re.search(r"\nN_FREQ_PROCESS\s*=\s*(\d{3})", params)  # Regex pattern to search for number of frequency processes to run.
+        self.Nproc = int(Nproc.group(1))
+        
         runlist_file.close()    
         param_file.close()
         
@@ -141,6 +144,7 @@ class Destriper():
         print("Baseline freq:", self.basefreq)
         print("Highpass cut:", self.highpass_nu)
         print("Use mask:", self.masking)
+        print("Number of frequency loop processes:", self.Nproc)
         
     def run(self, sb = 1, freq = 1, freq_idx = None):
         self.sb         = sb 
@@ -334,51 +338,6 @@ class Destriper():
         self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
         self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
 
-        if self.scheme == "baseline_only":
-            self.baseline_buffer = self.tod_buffer.copy()
-            self.corrected_tod_buffer = self.tod_buffer.copy()
-
-
-    def fill_corrected_tod_buffer(self):
-        print("Filling corrected TOD buffer:")
-        self.corrected_tod_buffer[:, self.freq_idx] = self.tod - self.F.dot(self.a)
-        self.baseline_buffer[:, self.freq_idx]      = self.F.dot(self.a)
-
-    def save_baseline_tod(self):
-        print("Saving baselines:")
-        tod_lens = self.tod_lens
-        tod_lens = tod_lens[::self.Nfeed]
-
-        outfile_path = self.infile_path + "baselines/"
-        if not os.path.exists(outfile_path):
-            os.mkdir(outfile_path)
-            print(outfile_path)
-        
-        for i in range(len(self.names)):
-            start, stop = self.start_stop[:, i]
-
-            baseline      = self.baseline_buffer[start:stop, :]
-            corrected_tod = self.corrected_tod_buffer[start:stop, :]
-            tod_old       = self.tod_buffer[start:stop, :]
-
-            shape = baseline.shape
-            
-            baseline = baseline.reshape(shape[0], 4, 64)
-            baseline = baseline.reshape(self.Nfeed, tod_lens[i], 4, 64)
-            baseline = baseline.transpose(0, 2, 3, 1)
-
-            corrected_tod = corrected_tod.reshape(shape[0], 4, 64)
-            corrected_tod = corrected_tod.reshape(self.Nfeed, tod_lens[i], 4, 64)
-            corrected_tod = corrected_tod.transpose(0, 2, 3, 1)
-            
-            new_name = self.names[i].split(".")
-            new_name = new_name[0] + "_temp." + new_name[1]
-            
-            infile = h5py.File(outfile_path + new_name, "w")
-            infile.create_dataset("tod_baseline", data = baseline)
-            infile.create_dataset("tod_corrected", data = corrected_tod)
-            infile.close()
-            
     def initialize_P_and_F(self):
         #print("Get pixel index:")
         t0 = time.time()
@@ -623,8 +582,9 @@ class Destriper():
     
     def make_baseline_only(self):
         self.get_baselines()
-        self.fill_corrected_tod_buffer()
-    
+        #self.fill_baseline_tod_buffer()
+        self.baseline_tod = self.F.dot(self.a) 
+
     def get_hits(self):
         #self.get_P()
         P, PT, Nside, Nsamp = self.P, self.PT, self.Nside, self.Nsamp
@@ -659,7 +619,6 @@ class Destriper():
         print(cube.shape)
 
         self.cube = cube[self.sb, self.freq, :, :]
-
         
     def write_map(self, full_map, full_hits, full_rms):
         Nside, dpix, fieldcent, ra, dec, freq = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec, self.freq
@@ -709,6 +668,37 @@ class Destriper():
             
         outfile.close()
 
+    def fill_baseline_tod_buffer(self, baselines):
+        print("Filling baseline TOD buffer:")
+        #self.corrected_tod_buffer[:, self.freq_idx] = self.tod - self.F.dot(self.a)
+        self.baseline_buffer[:, self.freq_idx]      = self.F.dot(self.a)
+
+    def save_baseline_tod(self, baseline_buffer):
+        print("Saving baselines:")
+        tod_lens = self.tod_lens
+        tod_lens = tod_lens[::self.Nfeed]
+
+        outfile_path = self.infile_path + "baselines/"
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+            print(outfile_path)
+        
+        for i in range(len(self.names)):
+            start, stop = self.start_stop[:, i]
+
+            baseline      = baseline_buffer[start:stop, :]
+
+            shape = baseline.shape
+            baseline = baseline.reshape(shape[0], 4, 64)
+            baseline = baseline.reshape(self.Nfeed, tod_lens[i], 4, 64)
+            baseline = baseline.transpose(0, 2, 3, 1)
+
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+            infile = h5py.File(outfile_path + new_name, "w")
+            infile.create_dataset("tod_baseline", data = baseline)
+            infile.close()
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
@@ -763,7 +753,7 @@ if __name__ =="__main__":
     eps      = 0
     #freq_idx = [113]
     freq_idx = range(4 * 64)
-    N_proc = 10
+    N_proc = 48
     
     for pfile in paramfiles:
         t = time.time()
@@ -784,7 +774,7 @@ if __name__ =="__main__":
 
             if destr.scheme == "baseline_only":
                 destr.make_baseline_only()
-                return 0
+                return np.array([destr.baseline_tod])
             else:
                 destr.make_map()
                 print("\n", "Making map: ", time.time() - t, "sec \n")
@@ -803,18 +793,8 @@ if __name__ =="__main__":
             full_map = pool.map(dummy, freq_idx)
         pool.close()
         pool.join()
-        
-        #dummy(0)
         print("Finished frequency loop:", time.time() - t0, "sec")
-
-        print("Find baselines only:")
-        destr.save_baseline_tod()
-        print("Baselines only:", time.time() - t0, "sec")
-        
-        
-        sys.exit()
-        
-        
+    
         print("Formating output:")
         
         full_map = np.array(full_map)
