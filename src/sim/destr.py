@@ -200,7 +200,7 @@ class Destriper():
         if self.obsID_map:
             print("obsID ", self.obsID)
             for filename in os.listdir(self.infile_path):
-                if self.obsID in filename and len(filename) <= 17:
+                if self.obsID in filename and len(filename):
                     if np.any([(name in filename) for name in self.scanIDs]):
                         Nscans += 1
                         infile = h5py.File(self.infile_path + filename, "r")
@@ -215,7 +215,7 @@ class Destriper():
                         print("No scan detected for this obsID!")
         else:
             for filename in os.listdir(self.infile_path):
-                if np.any([(name in filename) for name in self.scanIDs]):
+                if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
                     Nscans += 1
                     infile = h5py.File(self.infile_path + filename, "r")
                     tod_shape  = infile["tod"].shape
@@ -420,8 +420,8 @@ class Destriper():
         rows = np.arange(0, Nsamp, 1)
         cols = self.px        
         
-        self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix))
-        self.PT = csc_matrix(self.P.T)
+        self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix), dtype = np.uint8)
+        self.PT = csc_matrix(self.P.T, dtype = np.uint8)
         
     def get_F(self):
         Nsamp, Nbaseline, Nperbaselines = self.Nsamp, self.Nbaseline, self.Nperbaselines
@@ -436,8 +436,8 @@ class Destriper():
             start = Nperbaselines_cum[i]
             end = Nperbaselines_cum[i + 1]
             cols[start:end] = np.tile(i, Nperbaselines[i + 1])
-        self.F = csc_matrix((ones, (rows, cols)), shape = (Nsamp, Nbaseline))
-        self.FT = csc_matrix(self.F.T)
+        self.F = csc_matrix((ones, (rows, cols)), shape = (Nsamp, Nbaseline), dtype = np.uint8)
+        self.FT = csc_matrix(self.F.T, dtype = np.uint8)
     
     def get_Cn_inv(self):
         Nsamp, Nscans, cumlen = self.Nsamp, self.Nscans, self.tod_cumlen
@@ -456,7 +456,7 @@ class Destriper():
         PCP_inv = self.PT.dot(self.C_n_inv)        
         PCP_inv = PCP_inv.dot(self.P) + diags(self.eps * np.ones(self.Npix))
            
-        self.PCP_inv = diags(1 / PCP_inv.diagonal(), format = "csc")
+        self.PCP_inv = diags(1 / PCP_inv.diagonal(), format = "csc", dtype = np.float32)
    
     def get_FT_C_P_PCP(self):
         #FT, C_n_inv, P, PCP_inv = self.FT, self.C_n_inv, self.P, self.PCP_inv    
@@ -465,6 +465,8 @@ class Destriper():
         FT_C_P = FT_C.dot(self.P)
         
         self.FT_C_P_PCP = FT_C_P.dot(self.PCP_inv)
+        print("DTYPE", self.FT_C_P_PCP.dtype)
+        sys.exit()
     
     def get_PT_C(self):
         #PT, C_n_inv = self.PT, self.C_n_inv
