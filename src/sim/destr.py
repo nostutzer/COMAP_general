@@ -1,5 +1,5 @@
 import numpy as np 
-from scipy.sparse import csc_matrix, identity, diags
+from scipy.sparse import csc_matrix, csr_matrix, identity, diags
 import sparse_dot_mkl
 import scipy.sparse.linalg as linalg
 from scipy import signal
@@ -15,6 +15,7 @@ import copy
 import os
 import re
 import argparse
+import random 
 
 class Destriper():
     def __init__(self, eps = 0, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
@@ -95,7 +96,6 @@ class Destriper():
         mapname = re.search(r"\nMAP_NAME\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for output simulation cube file path.
         self.map_name = str(mapname.group(1))                                # Extracting path
 
-        
         scanIDs = re.findall(r"\s\d{8}\s", runlist)         # Regex pattern to find all scanIDs in runlist
         self.scanIDs = [num.strip() for num in scanIDs]
         self.nscanIDs = len(self.scanIDs)                  # Number of scanIDs in runlist
@@ -134,12 +134,30 @@ class Destriper():
             self.baseline_only = False 
 
         Nproc = re.search(r"\nN_FREQ_PROCESS\s*=\s*(\d+)", params)  # Regex pattern to search for number of frequency processes to run.
-
         self.Nproc = int(Nproc.group(1))
         
+        Nbatch = re.search(r"\nN_FREQ_PROCESS\s*=\s*(\d+)", params)  # Regex pattern to search for number of frequency processes to run.
+        self.Nbatch = int(Nbatch.group(1))
+        """
+        # Read in filename for split data file
+        accpt_data_path = re.search(r"\ACCEPT_DATA_FOLDER\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+        print(accpt_data_path)
+        accpt_data_path = str(accpt_data_path.group(1))                                # Extracting path
+
+        accpt_id = re.search(r"\ACCEPT_DATA_ID_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+        accpt_id = str(accpt_id.group(1))                                # Extracting path
+
+        split_id = re.search(r"\ACCEPT_DATA_ID_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+        split_id = str(split_id.group(1))                                # Extracting path
+
+
+        acceptfile_name = accpt_data_path + "jk_data" +  accpt_id + split_id + "_" + self.patch_name
+
         runlist_file.close()    
         param_file.close()
-        
+        print(acceptfile_name)
+        sys.exit()
+        """
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -197,9 +215,11 @@ class Destriper():
         names     = []
         Nscans    = 0
         t = time.time()
+        file_list = os.listdir(self.infile_path)
+        random.shuffle(file_list)        
         if self.obsID_map:
             print("obsID ", self.obsID)
-            for filename in os.listdir(self.infile_path):
+            for filename in file_list:
                 if self.obsID in filename and len(filename):
                     if np.any([(name in filename) for name in self.scanIDs]):
                         Nscans += 1
@@ -214,7 +234,7 @@ class Destriper():
                     else:
                         print("No scan detected for this obsID!")
         else:
-            for filename in os.listdir(self.infile_path):
+            for filename in file_list:
                 if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
                     Nscans += 1
                     infile = h5py.File(self.infile_path + filename, "r")
@@ -448,7 +468,7 @@ class Destriper():
             end = cumlen[i + 1]
             C_n_inv[start:end] = self.sigma0_inv[i] ** 2
 
-        self.C_n_inv = diags(C_n_inv)
+        self.C_n_inv = diags(C_n_inv, dtype = np.float32)
     
     def get_PCP_inv(self):
         #P, PT, C_n_inv, eps = self.P, self.PT, self.C_n_inv, self.eps
@@ -457,7 +477,7 @@ class Destriper():
         PCP_inv = PCP_inv.dot(self.P) + diags(self.eps * np.ones(self.Npix))
            
         self.PCP_inv = diags(1 / PCP_inv.diagonal(), format = "csc", dtype = np.float32)
-   
+        
     def get_FT_C_P_PCP(self):
         #FT, C_n_inv, P, PCP_inv = self.FT, self.C_n_inv, self.P, self.PCP_inv    
         
@@ -465,19 +485,31 @@ class Destriper():
         FT_C_P = FT_C.dot(self.P)
         
         self.FT_C_P_PCP = FT_C_P.dot(self.PCP_inv)
-        print("DTYPE", self.FT_C_P_PCP.dtype)
-        sys.exit()
-    
+        
     def get_PT_C(self):
         #PT, C_n_inv = self.PT, self.C_n_inv
         
         self.PT_C = self.PT.dot(self.C_n_inv)
         
+
     def get_FT_C(self):
         #FT, C_n_inv = self.FT, self.C_n_inv
 
         self.FT_C = self.FT.dot(self.C_n_inv)        
     
+    def get_preconditioner(self):
+        preconditioner = np.zeros(self.Nbaseline)
+        preconditioner += self.FT_C_F.diagonal()
+
+        FT_C_P_PCP_rowform = csr_matrix(self.FT_C_P_PCP)
+        for i in range(self.Nbaseline):
+            temp = FT_C_P_PCP_rowform.getrow(i).dot(self.PT_C_F.getcol(i)).data
+            if len(temp) > 0:
+                preconditioner[i] += - temp[0] 
+        
+        self.preconditioner = diags(preconditioner)
+        
+
     def Ax(self, a):
         #FT_C_F, FT_C_P_PCP, PT_C_F = self.FT_C_F, self.FT_C_P_PCP, self.PT_C_F
       
@@ -508,13 +540,15 @@ class Destriper():
         self.FT_C_F = self.FT_C.dot(self.F)
         self.PT_C_F = self.PT_C.dot(self.F)
 
-        Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax)
+        self.get_preconditioner()
+
+        Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax, dtype = np.float32)
         b  = self.b(self.tod)
         
         print("Initializing CG:")
-        self.a, info = linalg.cg(Ax, b)
+        self.a, info = linalg.cg(Ax, b, M = self.preconditioner)
         print("CG final count: ", self.counter)
-        
+
         self.counter = 0
         self.counter2 = 0
 
@@ -678,7 +712,10 @@ class Destriper():
         tod_lens = tod_lens[::self.Nfeed]
 
         #outfile_path = self.infile_path + "baselines/"
-        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
+        #outfile_path = self.infile_path + "baselines/batch_of_half/"
+        #outfile_path = self.infile_path + "baselines/batch_of_third/"
+        #outfile_path = self.infile_path + "baselines/batch_of_ninth/scrambled/"
+        outfile_path = self.infile_path + "baselines/all_in_one/"
         #outfile_path = self.infile_path + "null_test/"
         
         print("Saveing baselines to:", outfile_path)
