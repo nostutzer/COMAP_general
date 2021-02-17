@@ -48,7 +48,7 @@ baselines = np.array(baselines)
 baselines = baselines[:, 0, :]
 baselines = baselines.transpose()
 
-#destr.save_baseline_tod(baselines)
+destr.save_baseline_tod(baselines)
 print("Time: ", time.time() - t0, "sec")
     
     

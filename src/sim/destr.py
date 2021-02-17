@@ -488,6 +488,9 @@ class Destriper():
         #print(a)
         #print("CG counter: ", self.counter)
         self.counter += 1
+        
+        if np.any(np.isnan(a)) or np.any(np.isinf(a)):
+            print("NaN or Inf in template vector a!")
 
         return temp0 - temp2
         
@@ -497,6 +500,9 @@ class Destriper():
         temp0 = self.FT_C.dot(x)
         temp1 = self.PT_C.dot(x)
         temp2 = self.FT_C_P_PCP.dot(temp1)
+        
+        if np.any(np.isnan(a)) or np.any(np.isinf(a)):
+            print("NaN or Inf in x!")
 
         return temp0 - temp2
 
@@ -511,9 +517,9 @@ class Destriper():
         Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax)
         b  = self.b(self.tod)
         
-        print("Initializing CG:")
+        #print("Initializing CG:")
         self.a, info = linalg.cg(Ax, b)
-        print("CG final count: ", self.counter)
+        #print("CG final count: ", self.counter)
         
         self.counter = 0
         self.counter2 = 0
@@ -678,7 +684,8 @@ class Destriper():
         tod_lens = tod_lens[::self.Nfeed]
 
         #outfile_path = self.infile_path + "baselines/"
-        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
+        outfile_path = self.infile_path + "all_in_one/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
         #outfile_path = self.infile_path + "null_test/"
         
         print("Saveing baselines to:", outfile_path)
