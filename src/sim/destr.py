@@ -15,6 +15,7 @@ import copy
 import os
 import re
 import argparse
+import random
 
 class Destriper():
     def __init__(self, eps = 0, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
@@ -139,7 +140,14 @@ class Destriper():
         
         runlist_file.close()    
         param_file.close()
+
+        idx_feed = np.arange(0, 18, dtype = int)
+        idx_sb   = np.arange(0, 4, dtype = int)
+        idx_freq = np.arange(0, 64, dtype = int)
         
+        idx_feed, idx_sb, idx_freq = np.meshgird(idx_feed, idx_sb, idx_freq, indexing = "ij")
+        self.all_idx = np.array([idx_feed.flatten(), idx_sb.flatten(), idx_freq.flatten()])
+
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -191,6 +199,118 @@ class Destriper():
         t0 = time.time()
         self.get_PCP_inv()
         #print("Get PCP_inv time:", time.time() - t0, "sec")
+
+    def get_data_per_freq_and_feed(self, freq_idx):
+        feed, sb, freq = self.all_idx[:, freq_idx]
+        tod_lens  = []
+        names     = []
+        Nscans    = 0
+        t = time.time()
+        file_list = os.listdir(self.infile_path)
+        file_list.shuffle()
+
+        for filename in os.listdir(self.infile_path):
+            if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
+                Nscans += 1
+                infile = h5py.File(self.infile_path + filename, "r")
+                tod_shape  = infile["tod"].shape
+                Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+                Nfeed  -= 1
+                tod_lens.append(Nsamp)
+                names.append(filename)
+                infile.close()
+        self.Nfeed = Nfeed
+        self.Nsb = Nsb
+        self.Nfreq = Nfreq
+        self.names = names
+
+        infile = h5py.File(self.infile_path + names[1], "r")
+        freq       = np.array(infile["nu"])[()]
+        
+        infile.close()
+        
+        print("Number of scans:", Nscans)
+        
+        tod_lens = np.array(tod_lens)
+        self.tod_lens = tod_lens
+        tod_cumlen = np.zeros(Nscans + 1).astype(int)
+        tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
+        Nsamp_tot = np.sum(tod_lens)
+    
+        self.tod_buffer = np.zeros((Nsamp_tot), dtype = np.float32)
+       
+        #time_buffer = np.zeros(Nsamp_tot)
+        ra_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
+        dec_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
+        self.sigma0_buffer = np.zeros((Nscans), dtype = np.float32)
+        self.mask_buffer = np.zeros((Nscans), dtype = np.uint8)
+        
+        Nbaseline_tot = 0
+        Nperbaselines = [0]
+        Nperscan      = [0]
+
+        self.start_stop = np.zeros((2, Nscans), dtype = int)
+        
+        for i in range(Nscans):
+            infile = h5py.File(self.infile_path + names[i], "r")
+            print("Loading scan: ", i, ", ", names[i])
+            freqmask          = np.array(infile["freqmask"])[feed, sb, freq]
+            
+            tod                = np.array(infile["tod"])[feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
+            
+            if tod.dtype != np.float32:
+                raise ValueError("The input TOD should be of dtype float32!")
+
+            tod_time   = np.array(infile["time"])[()] * 3600 * 24
+            
+            sigma0 = np.array(infile["sigma0"])[feed, sb, freq]
+            
+            pointing  = np.array(infile["point_cel"])[feed, ...] #[()]
+
+            ra        = pointing[:, 0] 
+            dec       = pointing[:, 1] 
+
+            Nsamp = tod.shape[-1] 
+            Nperscan.append(Nsamp)
+            dt    = tod_time[1] - tod_time[0]
+                        
+            Nperbaseline = int(round(self.baseline_time / dt))
+            #N_baseline = int(round((tod_time[-1] - tod_time[0]) / self.baseline_time))
+            Nbaseline = int(np.floor(Nsamp / Nperbaseline))
+            #print(N_perbaseline, dt * N_perbaseline, int(round(self.baseline_time / dt)))
+            excess = Nsamp - Nperbaseline * Nbaseline
+            
+            for k in range(Nbaseline):
+                Nperbaselines.append(Nperbaseline)
+        
+            if excess > 0:
+                Nbaseline_tot += 1
+                Nperbaselines.append(excess)
+            
+            self.sigma0_buffer[i] = sigma0[i]
+            self.mask_buffer[i]   = freqmask[i]
+        
+            start = tod_cumlen[i]
+            end   = tod_cumlen[(i + 1)]
+            self.start_stop[0, i] = start
+            self.start_stop[1, i] = end
+
+            self.tod_buffer[start:end, ...]  = tod
+            #time_buffer[start:end] = tod_time
+            ra_buffer[start:end]   = ra.flatten()
+            dec_buffer[start:end]  = dec.flatten()
+            
+            infile.close()
+
+        self.dt = dt
+        
+        self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
+        self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
+        self.Nbaseline    = Nbaseline_tot
+        self.Nperbaselines = np.array(Nperbaselines)
+        self.Nsamp        = Nsamp_tot
+        self.Nscans       = Nscans
+        self.tod_cumlen   = tod_cumlen
 
     def get_data(self):
         tod_lens  = []
