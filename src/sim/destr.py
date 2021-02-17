@@ -16,6 +16,8 @@ import os
 import re
 import argparse
 import random 
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning) #ignore warnings caused by weights cut-off
 
 class Destriper():
     def __init__(self, eps = 0, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
@@ -138,26 +140,51 @@ class Destriper():
         
         Nbatch = re.search(r"\nN_FREQ_PROCESS\s*=\s*(\d+)", params)  # Regex pattern to search for number of frequency processes to run.
         self.Nbatch = int(Nbatch.group(1))
-        """
-        # Read in filename for split data file
-        accpt_data_path = re.search(r"\ACCEPT_DATA_FOLDER\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
-        print(accpt_data_path)
-        accpt_data_path = str(accpt_data_path.group(1))                                # Extracting path
+        
+        perform_split = re.search(r"\nUSE_ACCEPT\s*=\s*(.true.|.false.)", params)  # Regex pattern to search for patch definition file.
+        
+        self.perform_split = perform_split.group(1)
+        print("UBUBUBU", self.perform_split)
+        if self.perform_split == ".true.":
+            self.perform_split = True 
+            self.scheme = "baseline_only"
+        else:
+            self.perform_split = False 
+        
+        if self.perform_split: 
+            # Read in filename for split data file
+            accpt_data_path = re.search(r"\nACCEPT_DATA_FOLDER\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_data_path = str(accpt_data_path.group(1))                                # Extracting path
 
-        accpt_id = re.search(r"\ACCEPT_DATA_ID_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
-        accpt_id = str(accpt_id.group(1))                                # Extracting path
+            accpt_id = re.search(r"\nACCEPT_DATA_ID_STRING\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_id = str(accpt_id.group(1))                                # Extracting path
 
-        split_id = re.search(r"\ACCEPT_DATA_ID_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
-        split_id = str(split_id.group(1))                                # Extracting path
+            split_id = re.search(r"\nJK_DATA_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            if split_id == None:
+                split_id = ""
+            else:
+                split_id = str(split_id.group(1))                                # Extracting path
+
+            self.acceptfile_name = accpt_data_path + "jk_data_" +  accpt_id + split_id + "_" + self.patch_name + ".h5"
+
+            # jk_list file from parameter file
+            split_def = re.search(r"\nJK_DEF_FILE\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            self.split_def = str(split_def.group(1))                                # Extracting path
 
 
-        acceptfile_name = accpt_data_path + "jk_data" +  accpt_id + split_id + "_" + self.patch_name
+            idx_feed = np.arange(18, dtype = int)
+            idx_sb   = np.arange(4,  dtype = int)
+            idx_freq = np.arange(64, dtype = int)
+ 
+            FEED, SB, FREQ = np.meshgrid(idx_feed, idx_sb, idx_freq, indexing = "ij")
+
+            self.all_idx = np.array([FEED.flatten(), SB.flatten(), FREQ.flatten()])
+            print(self.all_idx.shape, FEED.shape, SB.shape, FREQ.shape)
+            print(self.all_idx[:, 0], self.all_idx[:, 1000], self.all_idx[:, -1])
 
         runlist_file.close()    
         param_file.close()
-        print(acceptfile_name)
-        sys.exit()
-        """
+        
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -177,38 +204,163 @@ class Destriper():
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
         
+        print("Perform split:", self.perform_split)
+        print("Accept data_folder: ", accpt_data_path)
+        print("Accept ID: ", accpt_id)
+        print("Split ID: ", split_id)
+        print("Split data file:", self.acceptfile_name)
+        print("Split def file:", self.split_def)
+        if self.perform_split:
+            self.read_split_def()
+            self.read_split_data()
+            self.define_split_batches()
+        sys.exit()
+        
     def run(self, sb = 1, freq = 1, freq_idx = None):
         self.sb         = sb 
         self.freq       = freq 
         self.freq_idx   = freq_idx
-    
-        if freq_idx != None:
-            self.tod           = self.tod_buffer[:, freq_idx] 
-            self.sigma0        = self.sigma0_buffer[:, freq_idx] 
-            self.mask          = self.mask_buffer[:, freq_idx] 
-            
-        else:
-            self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
-            self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
-            self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
-
-        if self.masking:
-            #print("Masking:", self.mask)
-            t0 = time.time()
-            self.get_P()
-
-        self.sigma0_inv = 1 / self.sigma0
-        self.sigma0_inv[self.mask == 0] = 0
         
-        #print("Get C_n_inv:")
-        t0 = time.time()
-        self.get_Cn_inv()
-        #print("Get C_n_inv time:", time.time() - t0, "sec")
+        if self.perform_splits:
+            pass
+        else:
+            if freq_idx != None:
+                self.tod           = self.tod_buffer[:, freq_idx] 
+                self.sigma0        = self.sigma0_buffer[:, freq_idx] 
+                self.mask          = self.mask_buffer[:, freq_idx] 
+                
+            else:
+                self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+                self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
+                self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
 
-        #print("Get PCP_inv:")
-        t0 = time.time()
-        self.get_PCP_inv()
-        #print("Get PCP_inv time:", time.time() - t0, "sec")
+            if self.masking:
+                #print("Masking:", self.mask)
+                t0 = time.time()
+                self.get_P()
+
+            self.sigma0_inv = 1 / self.sigma0
+            self.sigma0_inv[self.mask == 0] = 0
+            
+            #print("Get C_n_inv:")
+            t0 = time.time()
+            self.get_Cn_inv()
+            #print("Get C_n_inv time:", time.time() - t0, "sec")
+
+            #print("Get PCP_inv:")
+            t0 = time.time()
+            self.get_PCP_inv()
+            #print("Get PCP_inv time:", time.time() - t0, "sec")
+
+    def read_split_def(self):
+        split_names = []
+        n_coadd = n_feedmap = n_ctrl = n_test = n_split = 0
+
+        with open(self.split_def, "r") as split_def_file:
+            n_split = int(split_def_file.readline().split()[0]) - 1
+            split_def_file.readline()
+            for line in split_def_file:
+                line_element = line.split()
+                split_names.append(line_element[0])
+                number   = int(line_element[1])
+                
+                if number == 0:
+                    n_coadd += 1
+                elif number == 2:
+                    n_test += 1
+                elif number == 3:
+                    n_ctrl += 1
+                else:
+                    n_feedmap += 1
+
+        self.n_coadd     = n_coadd
+        self.n_feedmap   = n_feedmap
+        self.n_test      = n_test
+        self.n_ctrl      = n_ctrl
+        self.n_split     = n_split
+        self.split_names = split_names  
+
+        split_def_file.close()
+
+    def read_split_data(self):
+        
+        with h5py.File(self.acceptfile_name, "r") as split_file:
+            split_list = np.array(split_file["jk_list"])[()]
+            split_scans  = np.array(split_file["scan_list"])[()] 
+        split_file.close()
+
+        self.split_scans = split_scans
+        self.all_scans, nfeed, nsb = split_list.shape
+        self.splits = np.zeros((self.n_split, self.all_scans, nfeed, nsb))
+       
+        for i in range(self.n_split):
+            x, y, z = np.where(split_list > 2 ** i)
+            self.splits[i, x, y, z] = 1
+            split_list[x, y, z] -= 2 ** i
+
+        self.n_split -= self.n_test + self.n_ctrl
+
+        self.Nbatch = 2 ** self.n_split
+        
+        tod_lens  = []
+        names     = []
+        Nscans    = 0
+        t = time.time()
+        file_list = os.listdir(self.infile_path)
+            
+        for scan in self.scanIDs:
+            for filename in file_list:
+                if scan in filename and len(filename) < 17:
+                    #print(scan, filename)
+                    Nscans += 1
+                    infile = h5py.File(self.infile_path + filename, "r")
+                    tod_shape  = infile["tod"].shape
+                    Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+                    Nfeed  -= 1
+                    tod_lens.append(Nsamp)
+                    names.append(filename)
+                    infile.close()
+        names = np.array(names)
+        tod_lens = np.array(tod_lens)
+        
+        scan_idx = np.arange(Nscans, dtype = int)
+        np.random.shuffle(scan_idx)
+        
+        self.names = names[scan_idx]
+        self.tod_lens = tod_lens[scan_idx]
+        self.splits = self.splits[:, scan_idx, :, :]
+        self.split_scans = self.split_scans[scan_idx]
+        self.Nscans = Nscans
+            
+    def define_split_batches(self):
+        feed, sb, freq = self.all_idx[:, 4000]
+        exp_of_two = 2 ** np.arange(self.n_split)
+        
+        batch_buffer = []
+        [batch_buffer.append([]) for i in range(self.Nbatch)]
+        
+        for i in range(self.Nscans):
+            batch = np.sum(self.splits[:, i, feed, sb] * exp_of_two).astype(int)
+            batch_buffer[batch].append([self.names[i], feed, sb, freq])
+        
+        self.batch_buffer = batch_buffer
+        print(batch_buffer)
+
+        for i in range(self.Nbatch):
+            if len(batch_buffer[i]) < 1:
+                print("Empty batch!")
+            else:
+                batch_list = np.array(batch_buffer)
+                self.get_split_batch(batch_list)
+        
+        
+    def get_split_batch(self, batch_list):
+        print(batch_list.shape)
+
+
+    def define_multisplit_batches(self):
+        pass
+        "NOT YET IMPLEMENTED"
 
     def get_data(self):
         tod_lens  = []
@@ -520,6 +672,9 @@ class Destriper():
         #print(a)
         #print("CG counter: ", self.counter)
         self.counter += 1
+        
+        if np.any(np.isnan(a)):
+            print("NaN found inside templates a!")
 
         return temp0 - temp2
         
@@ -529,7 +684,10 @@ class Destriper():
         temp0 = self.FT_C.dot(x)
         temp1 = self.PT_C.dot(x)
         temp2 = self.FT_C_P_PCP.dot(temp1)
-
+        
+        if np.any(np.isnan(x)):
+            print("NaN found inside templates x!")
+        
         return temp0 - temp2
 
     def get_baselines(self):
@@ -540,13 +698,14 @@ class Destriper():
         self.FT_C_F = self.FT_C.dot(self.F)
         self.PT_C_F = self.PT_C.dot(self.F)
 
-        self.get_preconditioner()
+        #self.get_preconditioner()
 
         Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax, dtype = np.float32)
         b  = self.b(self.tod)
         
         print("Initializing CG:")
-        self.a, info = linalg.cg(Ax, b, M = self.preconditioner)
+        #self.a, info = linalg.cg(Ax, b, M = self.preconditioner)
+        self.a, info = linalg.cg(Ax, b)
         print("CG final count: ", self.counter)
 
         self.counter = 0
