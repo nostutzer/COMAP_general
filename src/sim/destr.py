@@ -141,13 +141,48 @@ class Destriper():
         runlist_file.close()    
         param_file.close()
 
-        idx_feed = np.arange(0, 18, dtype = int)
-        idx_sb   = np.arange(0, 4, dtype = int)
-        idx_freq = np.arange(0, 64, dtype = int)
         
-        idx_feed, idx_sb, idx_freq = np.meshgird(idx_feed, idx_sb, idx_freq, indexing = "ij")
-        self.all_idx = np.array([idx_feed.flatten(), idx_sb.flatten(), idx_freq.flatten()])
+        perform_split = re.search(r"\nUSE_ACCEPT\s*=\s*(.true.|.false.)", params)  # Regex pattern to search for patch definition file.
+        
+        self.perform_split = perform_split.group(1)
+        print("UBUBUBU", self.perform_split)
+        if self.perform_split == ".true.":
+            self.perform_split = True 
+            self.scheme = "baseline_only"
+        else:
+            self.perform_split = False 
+        
+        if self.perform_split: 
+            # Read in filename for split data file
+            accpt_data_path = re.search(r"\nACCEPT_DATA_FOLDER\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_data_path = str(accpt_data_path.group(1))                                # Extracting path
 
+            accpt_id = re.search(r"\nACCEPT_DATA_ID_STRING\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_id = str(accpt_id.group(1))                                # Extracting path
+
+            split_id = re.search(r"\nJK_DATA_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            if split_id == None:
+                split_id = ""
+            else:
+                split_id = str(split_id.group(1))                                # Extracting path
+
+            self.acceptfile_name = accpt_data_path + "jk_data_" +  accpt_id + split_id + "_" + self.patch_name + ".h5"
+
+            # jk_list file from parameter file
+            split_def = re.search(r"\nJK_DEF_FILE\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            self.split_def = str(split_def.group(1))                                # Extracting path
+
+
+            idx_feed = np.arange(18, dtype = int)
+            idx_sb   = np.arange(4, dtype = int)
+            idx_freq = np.arange(64, dtype = int)
+        
+            idx_feed, idx_sb, idx_freq = np.meshgird(idx_feed, idx_sb, idx_freq, indexing = "ij")
+            self.all_idx = np.array([idx_feed.flatten(), idx_sb.flatten(), idx_freq.flatten()])
+        
+        runlist_file.close()    
+        param_file.close()
+        
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -167,20 +202,37 @@ class Destriper():
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
         
+        print("Perform split:", self.perform_split)
+        print("Accept data_folder: ", accpt_data_path)
+        print("Accept ID: ", accpt_id)
+        print("Split ID: ", split_id)
+        print("Split data file:", self.acceptfile_name)
+        print("Split def file:", self.split_def)
+        
+        
     def run(self, sb = 1, freq = 1, freq_idx = None):
         self.sb         = sb 
         self.freq       = freq 
         self.freq_idx   = freq_idx
-    
-        if freq_idx != None:
-            self.tod           = self.tod_buffer[:, freq_idx] 
-            self.sigma0        = self.sigma0_buffer[:, freq_idx] 
-            self.mask          = self.mask_buffer[:, freq_idx] 
+
+        if self.perform_split:
+            feed, sb, freq = self.all_idx[:, self.freq_idx]
             
+            self.feed = feed 
+            self.sb   = sb 
+            self.freq = freq 
+        
+            self.get_data_per_freq_and_feed()
         else:
-            self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
-            self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
-            self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+            if freq_idx != None:
+                self.tod           = self.tod_buffer[:, freq_idx] 
+                self.sigma0        = self.sigma0_buffer[:, freq_idx] 
+                self.mask          = self.mask_buffer[:, freq_idx] 
+                
+            else:
+                self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+                self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
+                self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
 
         if self.masking:
             #print("Masking:", self.mask)
@@ -200,8 +252,8 @@ class Destriper():
         self.get_PCP_inv()
         #print("Get PCP_inv time:", time.time() - t0, "sec")
 
-    def get_data_per_freq_and_feed(self, freq_idx):
-        feed, sb, freq = self.all_idx[:, freq_idx]
+    def get_names_and_todlens(self):
+        feed, sb, freq = self.feed, self.sb, self.freq
         tod_lens  = []
         names     = []
         Nscans    = 0
@@ -235,25 +287,26 @@ class Destriper():
         self.tod_lens = tod_lens
         tod_cumlen = np.zeros(Nscans + 1).astype(int)
         tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
-        Nsamp_tot = np.sum(tod_lens)
-    
-        self.tod_buffer = np.zeros((Nsamp_tot), dtype = np.float32)
-       
-        #time_buffer = np.zeros(Nsamp_tot)
-        ra_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
-        dec_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
-        self.sigma0_buffer = np.zeros((Nscans), dtype = np.float32)
-        self.mask_buffer = np.zeros((Nscans), dtype = np.uint8)
+        self.Nsamp = np.sum(tod_lens)
+        self.tod_cumlen   = tod_cumlen
+        self.Nscans       = Nscans
+
+    def get_data_per_freq_and_feed(self):
+        self.tod    = np.zeros((self.Nsamp), dtype = np.float32)
+        self.ra     = np.zeros(self.Nsamp, dtype = np.float32)
+        self.dec    = np.zeros(self.Nsamp, dtype = np.float32)
+        self.sigma0 = np.zeros((self.Nscans), dtype = np.float32)
+        self.mask   = np.zeros((self.Nscans), dtype = np.uint8)
         
         Nbaseline_tot = 0
         Nperbaselines = [0]
         Nperscan      = [0]
 
-        self.start_stop = np.zeros((2, Nscans), dtype = int)
+        self.start_stop = np.zeros((2, self.Nscans), dtype = int)
         
-        for i in range(Nscans):
-            infile = h5py.File(self.infile_path + names[i], "r")
-            print("Loading scan: ", i, ", ", names[i])
+        for i in range(self.Nscans):
+            infile = h5py.File(self.infile_path + self.names[i], "r")
+            print("Loading scan: ", i, ", ", self.names[i])
             freqmask          = np.array(infile["freqmask"])[feed, sb, freq]
             
             tod                = np.array(infile["tod"])[feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
@@ -287,30 +340,24 @@ class Destriper():
                 Nbaseline_tot += 1
                 Nperbaselines.append(excess)
             
-            self.sigma0_buffer[i] = sigma0[i]
-            self.mask_buffer[i]   = freqmask[i]
+            self.sigma0[i] = sigma0
+            self.mask[i]   = freqmask
         
             start = tod_cumlen[i]
             end   = tod_cumlen[(i + 1)]
             self.start_stop[0, i] = start
             self.start_stop[1, i] = end
 
-            self.tod_buffer[start:end, ...]  = tod
-            #time_buffer[start:end] = tod_time
-            ra_buffer[start:end]   = ra.flatten()
-            dec_buffer[start:end]  = dec.flatten()
+            self.tod[start:end, ...]  = tod
+            self.ra[start:end]   = ra
+            self.dec[start:end]  = dec
             
             infile.close()
 
         self.dt = dt
         
-        self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
-        self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
         self.Nbaseline    = Nbaseline_tot
         self.Nperbaselines = np.array(Nperbaselines)
-        self.Nsamp        = Nsamp_tot
-        self.Nscans       = Nscans
-        self.tod_cumlen   = tod_cumlen
 
     def get_data(self):
         tod_lens  = []
@@ -822,9 +869,61 @@ class Destriper():
             new_name = self.names[i].split(".")
             new_name = new_name[0] + "_temp." + new_name[1]
             
-            infile = h5py.File(outfile_path + new_name, "w")
-            infile.create_dataset("tod_baseline", data = baseline, dtype = "float32")
-            infile.close()
+            baseline_file = h5py.File(outfile_path + new_name, "w")
+            baseline_file.create_dataset("tod_baseline", data = baseline, dtype = "float32")
+            baseline_file.close()
+
+    def set_up_baseline_files(self):
+        print("Generating output files:")
+     
+        #outfile_path = self.infile_path + "baselines/"
+        outfile_path = self.infile_path + "split_test/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
+        #outfile_path = self.infile_path + "null_test/"
+        
+        print("Output directory:", outfile_path)
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+        
+        for i in range(len(self.names)):
+            
+            shape = self.tod.shape
+            
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+
+            baseline_file = h5py.File(outfile_path + new_name, "w")
+
+            baseline_file.create_dataset("tod_baseline", shape, dtype = "float32")
+            baseline_file.close()
+
+    def save_baseline_tod_per_freq_and_feed(self):
+        feed, sb, freq = self.feed, self.sb, self.freq
+        print("Saving baseline:")
+        tod_lens = self.tod_lens
+        
+        #outfile_path = self.infile_path + "baselines/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
+        #outfile_path = self.infile_path + "null_test/"
+        
+        for i in range(len(self.names)):
+            start, stop = self.start_stop[:, i]
+
+            baseline      = self.a[start:stop]
+
+            baseline = baseline.astype(np.float32)
+            
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+            baseline_file = h5py.File(outfile_path + new_name, "r+")
+            
+            dataset = baseline_file["tod_baseline"]
+            dataset[feed, sb, freq, :] = baseline
+
+            baseline_file.close()
+
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
