@@ -333,30 +333,145 @@ class Destriper():
         self.Nscans = Nscans
             
     def define_split_batches(self):
-        feed, sb, freq = self.all_idx[:, 4000]
         exp_of_two = 2 ** np.arange(self.n_split)
         
         batch_buffer = []
         [batch_buffer.append([]) for i in range(self.Nbatch)]
-        
-        for i in range(self.Nscans):
-            batch = np.sum(self.splits[:, i, feed, sb] * exp_of_two).astype(int)
-            batch_buffer[batch].append([self.names[i], feed, sb, freq])
+        all_batch_buffer = []
+        #for i in range(len(all_batch_buffer)):
+        for i in range(2):
+            feed, sb, freq = self.all_idx[:, i]
+            all_batch_buffer.append(batch_buffer.copy())
+            for j in range(self.Nscans):
+                batch = np.sum(self.splits[:, j, feed, sb] * exp_of_two).astype(int)
+                all_batch_buffer[i][batch].append([self.names[j], feed, sb, freq])
         
         self.batch_buffer = batch_buffer
-        print(batch_buffer)
-
-        for i in range(self.Nbatch):
-            if len(batch_buffer[i]) < 1:
-                print("Empty batch!")
-            else:
-                batch_list = np.array(batch_buffer)
-                self.get_split_batch(batch_list)
+        print(all_batch_buffer)
+        print(len(all_batch_buffer), len(all_batch_buffer[0][0]), len(all_batch_buffer[1][0]))
+        
+        for i in range(2):
+            for j in range(self.Nbatch):
+                if len(all_batch_buffer[i][j]) > 1:
+                    batch_list = np.array(all_batch_buffer[i][j])
+                    self.get_split_batch(batch_list)
         
         
     def get_split_batch(self, batch_list):
         print(batch_list.shape)
+        N_in_batch = batch_list.shape[0]
+        tod_lens  = []
+        t = time.time()
 
+        for i in range(N_in_batch):
+            name, feed, sb, freq = batch_list[i, :]
+            print(name, feed, sb, freq)
+
+            infile = h5py.File(self.infile_path + filename, "r")
+            tod_shape  = infile["tod"].shape
+            Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+            tod_lens.append(Nsamp)
+            infile.close()
+
+        self.Nfeed = Nfeed
+        self.Nsb = Nsb
+        self.Nfreq = Nfreq
+
+        infile = h5py.File(self.infile_path + names[1], "r")
+        freq       = np.array(infile["nu"])[()]
+        freq       = freq[0, ...]
+        freq[0, :] = freq[0, ::-1]
+        freq[2, :] = freq[2, ::-1]   
+        self.freq  = freq
+        infile.close()
+
+        print(time.time() - t, "sec")
+
+        tod_lens = np.array(tod_lens)
+        self.tod_lens = tod_lens
+        tod_cumlen = np.zeros(N_in_batch + 1).astype(int)
+        tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
+        Nsamp_tot = np.sum(tod_lens)
+    
+        self.tod_buffer = np.zeros((Nsamp_tot), dtype = np.float32)
+       
+        #time_buffer = np.zeros(Nsamp_tot)
+        ra_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
+        dec_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
+        self.sigma0_buffer = np.zeros((N_in_batch), dtype = np.float32)
+        self.mask_buffer = np.zeros((N_in_batch), dtype = np.uint8)
+        
+        Nbaseline_tot = 0
+        Nperbaselines = [0]
+        Nperscan      = [0]
+
+        self.start_stop = np.zeros((2, N_in_batch), dtype = int)
+        
+        for i in range(N_in_batch):
+            name, feed, sb, freq = batch_list[i, :]
+            infile = h5py.File(self.infile_path + name, "r")
+            print("Loading scan: ", i, ", ", name[i])
+            freqmask          = np.array(infile["freqmask"])[feed, sb, freq]
+
+            tod                = np.array(infile["tod"])[feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
+            
+            if tod.dtype != np.float32:
+                raise ValueError("The input TOD should be of dtype float32!")
+
+            tod_time   = np.array(infile["time"])[()] * 3600 * 24
+            
+            sigma0 = np.array(infile["sigma0"])[feed, sb, freq]
+            
+            pointing  = np.array(infile["point_cel"])[feed, ...] #[()]
+
+            ra        = pointing[:, 0] 
+            dec       = pointing[:, 1] 
+            
+            Nsamp = tod.shape[-1] 
+            Nperscan.append(Nsamp)
+            dt    = tod_time[1] - tod_time[0]
+                        
+            Nperbaseline = int(round(self.baseline_time / dt))
+            #N_baseline = int(round((tod_time[-1] - tod_time[0]) / self.baseline_time))
+            Nbaseline = int(np.floor(Nsamp / Nperbaseline))
+            #print(N_perbaseline, dt * N_perbaseline, int(round(self.baseline_time / dt)))
+            excess = Nsamp - Nperbaseline * Nbaseline
+        
+            for k in range(Nbaseline):
+                Nperbaselines.append(Nperbaseline)
+        
+            if excess > 0:
+                Nbaseline_tot += 1
+                Nperbaselines.append(excess)
+            
+            self.sigma0_buffer[i] = sigma0
+            self.mask_buffer[i]   = freqmask
+        
+            start = tod_cumlen[i]
+            end   = tod_cumlen[(i + 1)]
+            self.start_stop[0, i] = start
+            self.start_stop[1, i] = end
+
+            self.tod_buffer[start:end, ...]  = tod
+            #time_buffer[start:end] = tod_time
+            ra_buffer[start:end]   = ra.flatten()
+            dec_buffer[start:end]  = dec.flatten()
+            
+            infile.close()
+
+        self.dt = dt
+        
+        self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
+        self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
+        self.Nbaseline    = Nbaseline_tot
+        self.Nperbaselines = np.array(Nperbaselines)
+        self.Nsamp        = Nsamp_tot
+        self.Nscans       = Nscans * Nfeed
+        self.tod_cumlen   = tod_cumlen
+
+        self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
+        self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
+        self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
 
     def define_multisplit_batches(self):
         pass
