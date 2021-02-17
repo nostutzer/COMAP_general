@@ -15,6 +15,7 @@ import copy
 import os
 import re
 import argparse
+warnings.filterwarnings("ignore", category=RuntimeWarning) #ignore warnings caused by weights cut-off
 
 class Destriper():
     def __init__(self, eps = 0, param_file = None, infile_path = None, outfile_path = None, obsID_map = False):
