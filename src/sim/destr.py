@@ -466,9 +466,7 @@ class Destriper():
         FT_C_P = FT_C.dot(self.P)
         
         self.FT_C_P_PCP = FT_C_P.dot(self.PCP_inv)
-        print("DTYPE", self.FT_C_P_PCP.dtype)
-        sys.exit()
-    
+        
     def get_PT_C(self):
         #PT, C_n_inv = self.PT, self.C_n_inv
         
