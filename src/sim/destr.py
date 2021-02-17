@@ -502,7 +502,7 @@ class Destriper():
         temp1 = self.PT_C.dot(x)
         temp2 = self.FT_C_P_PCP.dot(temp1)
         
-        if np.any(np.isnan(a)) or np.any(np.isinf(a)):
+        if np.any(np.isnan(x)) or np.any(np.isinf(x)):
             print("NaN or Inf in x!")
 
         return temp0 - temp2
