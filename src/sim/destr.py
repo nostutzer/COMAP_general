@@ -910,7 +910,7 @@ class Destriper():
         for i in range(len(self.names)):
             start, stop = self.start_stop[:, i]
 
-            baseline      = self.a[start:stop]
+            baseline      = self.baseline_tod[start:stop]
 
             baseline = baseline.astype(np.float32)
             
