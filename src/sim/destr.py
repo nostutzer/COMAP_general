@@ -140,9 +140,17 @@ class Destriper():
 
         self.Nproc = int(Nproc.group(1))
         
+
         runlist_file.close()    
         param_file.close()
-        
+
+        sidebands = np.arange(4, dtype = int)
+        freqs     = np.arange(64, dtype = int)
+
+        sidebands, freqs = np.meshgrid(sidebands, freqs, indexing = "ij")
+
+        self.all_freq_idx = np.array([sidebands.flatten(), freqs.flatten()])
+
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
         print("Field center", self.fieldcent)
@@ -163,19 +171,17 @@ class Destriper():
         print("Number of frequency loop processes:", self.Nproc)
         
     def run(self, sb = 1, freq = 1, freq_idx = None):
-        self.sb         = sb 
-        self.freq       = freq 
-        self.freq_idx   = freq_idx
-    
-        if freq_idx != None:
-            self.tod           = self.tod_buffer[:, freq_idx] 
-            self.sigma0        = self.sigma0_buffer[:, freq_idx] 
-            self.mask          = self.mask_buffer[:, freq_idx] 
-            
-        else:
-            self.tod          = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
-            self.sigma0       = self.sigma0_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq]
-            self.mask          = self.mask_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+        if freq_idx == None:
+            self.sb         = sb 
+            self.freq       = freq
+        else: 
+            self.freq_idx   = freq_idx
+            sb, freq = self.all_freq_idx[:, freq_idx]
+            self.sb, self.freq = sb, freq
+        
+        self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+        self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
+        self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
         if self.masking:
             #print("Masking:", self.mask)
@@ -184,7 +190,7 @@ class Destriper():
 
         self.sigma0_inv = 1 / self.sigma0
         self.sigma0_inv[self.mask == 0] = 0
-        
+
         #print("Get C_n_inv:")
         t0 = time.time()
         self.get_Cn_inv()
@@ -491,7 +497,7 @@ class Destriper():
         self.counter += 1
         
         if np.any(np.isnan(a)) or np.any(np.isinf(a)):
-            print("NaN or Inf in template vector a!")
+            print("NaN or Inf in template vector a!", " All NaN or Inf:", np.all(np.isnan(a)), np.all(np.isinf(a)))
 
         return temp0 - temp2
         
@@ -503,7 +509,7 @@ class Destriper():
         temp2 = self.FT_C_P_PCP.dot(temp1)
         
         if np.any(np.isnan(x)) or np.any(np.isinf(x)):
-            print("NaN or Inf in x!")
+            print("NaN or Inf in x!" " All NaN or Inf:", np.all(np.isnan(x)), np.all(np.isinf(x)))
 
         return temp0 - temp2
 
@@ -713,6 +719,38 @@ class Destriper():
             infile = h5py.File(outfile_path + new_name, "w")
             infile.create_dataset("tod_baseline", data = baseline, dtype = "float32")
             infile.close()
+
+    def save_baseline_tod_per_freq(self, sb, freq, baseline_buffer):
+        tod_lens = self.tod_lens
+        tod_lens = tod_lens[::self.Nfeed]
+
+        #outfile_path = self.infile_path + "baselines/"
+        outfile_path = self.infile_path + "all_in_one/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
+        #outfile_path = self.infile_path + "null_test/"
+        
+        #print("Saveing baselines to:", outfile_path)
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+        
+        for i in range(len(self.names)):
+            start, stop = self.start_stop[:, i]
+            baseline      = baseline_buffer[start:stop]
+
+            baseline = baseline.reshape(self.Nfeed, tod_lens[i])
+         
+            baseline = baseline.astype(np.float32)
+            
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+            outfile = h5py.File(outfile_path + new_name, "a")
+            if "tod_baseline" not in outfile.keys():
+                outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[1]), dtype = "float32")
+            
+            data = outfile["tod_baseline"]
+            data[:-1, sb, freq, :] = baseline
+            outfile.close()
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
