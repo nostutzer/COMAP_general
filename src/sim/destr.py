@@ -140,16 +140,54 @@ class Destriper():
 
         self.Nproc = int(Nproc.group(1))
         
+        self.perform_split = perform_split.group(1)
+        print("UBUBUBU", self.perform_split)
+        if self.perform_split == ".true.":
+            self.perform_split = True 
+            self.scheme = "baseline_only"
+        else:
+            self.perform_split = False 
+        
+        if self.perform_split: 
+            # Read in filename for split data file
+            accpt_data_path = re.search(r"\nACCEPT_DATA_FOLDER\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_data_path = str(accpt_data_path.group(1))                                # Extracting path
+
+            accpt_id = re.search(r"\nACCEPT_DATA_ID_STRING\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            accpt_id = str(accpt_id.group(1))                                # Extracting path
+
+            split_id = re.search(r"\nJK_DATA_STRING\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            if split_id == None:
+                split_id = ""
+            else:
+                split_id = str(split_id.group(1))                                # Extracting path
+
+            self.acceptfile_name = accpt_data_path + "jk_data_" +  accpt_id + split_id + "_" + self.patch_name + ".h5"
+
+            # jk_list file from parameter file
+            split_def = re.search(r"\nJK_DEF_FILE\s*=\s*'(\/.*?)'", params)   # Defining regex pattern to search for output simulation cube file path.
+            self.split_def = str(split_def.group(1))                                # Extracting path
+
+
+            idx_feed = np.arange(18, dtype = int)
+            idx_sb   = np.arange(4,  dtype = int)
+            idx_freq = np.arange(64, dtype = int)
+ 
+            feeds, sidebands, frequencies = np.meshgrid(idx_feed, idx_sb, idx_freq, indexing = "ij")
+
+            self.all_idx = np.array([feeds.flatten(), sidebands.flatten(), frequencies.flatten()])
+
+        else:
+            sidebands = np.arange(4, dtype = int)
+            freqs     = np.arange(64, dtype = int)
+
+            sidebands, freqs = np.meshgrid(sidebands, freqs, indexing = "ij")
+
+            self.all_freq_idx = np.array([sidebands.flatten(), freqs.flatten()])
 
         runlist_file.close()    
         param_file.close()
 
-        sidebands = np.arange(4, dtype = int)
-        freqs     = np.arange(64, dtype = int)
-
-        sidebands, freqs = np.meshgrid(sidebands, freqs, indexing = "ij")
-
-        self.all_freq_idx = np.array([sidebands.flatten(), freqs.flatten()])
 
         print("Patch def:", self.patch_def_path)
         print("Patch", self.patch_name)
@@ -169,6 +207,18 @@ class Destriper():
         print("Highpass cut:", self.highpass_nu)
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
+
+        print("Perform split:", self.perform_split)
+        print("Accept data_folder: ", accpt_data_path)
+        print("Accept ID: ", accpt_id)
+        print("Split ID: ", split_id)
+        print("Split data file:", self.acceptfile_name)
+        print("Split def file:", self.split_def)
+        if self.perform_split:
+            self.read_split_def()
+            self.read_split_data()
+            self.define_split_batches()
+        sys.exit()
         
     def run(self, sb = 1, freq = 1, freq_idx = None):
         if freq_idx == None:
@@ -200,6 +250,36 @@ class Destriper():
         t0 = time.time()
         self.get_PCP_inv()
         #print("Get PCP_inv time:", time.time() - t0, "sec")
+
+    def read_split_def(self):
+        split_names = []
+        n_coadd = n_feedmap = n_ctrl = n_test = n_split = 0
+
+        with open(self.split_def, "r") as split_def_file:
+            n_split = int(split_def_file.readline().split()[0]) - 1
+            split_def_file.readline()
+            for line in split_def_file:
+                line_element = line.split()
+                split_names.append(line_element[0])
+                number   = int(line_element[1])
+                
+                if number == 0:
+                    n_coadd += 1
+                elif number == 2:
+                    n_test += 1
+                elif number == 3:
+                    n_ctrl += 1
+                else:
+                    n_feedmap += 1
+
+        self.n_coadd     = n_coadd
+        self.n_feedmap   = n_feedmap
+        self.n_test      = n_test
+        self.n_ctrl      = n_ctrl
+        self.n_split     = n_split
+        self.split_names = split_names  
+
+        split_def_file.close()
 
     def get_data(self):
         tod_lens  = []
