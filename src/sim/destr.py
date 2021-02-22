@@ -190,7 +190,7 @@ class Destriper():
 
         self.sigma0_inv = 1 / self.sigma0
         self.sigma0_inv[self.mask == 0] = 0
-
+        
         #print("Get C_n_inv:")
         t0 = time.time()
         self.get_Cn_inv()
@@ -283,7 +283,7 @@ class Destriper():
             tod[:, 0, :, :]    = tod[:, 0, ::-1, :] #[()]#.astype(dtype=np.float32, copy=False) 
             tod[:, 2, :, :]    = tod[:, 2, ::-1, :] #[()]#.astype(dtype=np.float32, copy=False) 
             tod                = tod[:-1, :, :, :]
-            
+
             if tod.dtype != np.float32:
                 raise ValueError("The input TOD should be of dtype float32!")
 
@@ -497,7 +497,8 @@ class Destriper():
         self.counter += 1
         
         if np.any(np.isnan(a)) or np.any(np.isinf(a)):
-            print("NaN or Inf in template vector a!", " All NaN or Inf:", np.all(np.isnan(a)), np.all(np.isinf(a)))
+            print("NaN or Inf in template vector a!", " All NaN or Inf:", np.all(np.isnan(a)), np.all(np.isinf(a)), "Freq:", self.sb, self.freq, np.any(np.isnan(temp0)), np.any(np.isnan(temp1)), np.any(np.isnan(temp2)))
+            sys.exit()
 
         return temp0 - temp2
         
@@ -509,8 +510,8 @@ class Destriper():
         temp2 = self.FT_C_P_PCP.dot(temp1)
         
         if np.any(np.isnan(x)) or np.any(np.isinf(x)):
-            print("NaN or Inf in x!" " All NaN or Inf:", np.all(np.isnan(x)), np.all(np.isinf(x)))
-
+            print("NaN or Inf in x!" " All NaN or Inf:", np.all(np.isnan(x)), np.all(np.isinf(x)), "Freq:", self.sb, self.freq, np.any(np.isnan(temp0)), np.any(np.isnan(temp1)), np.any(np.isnan(temp2)))
+            sys.exit()
         return temp0 - temp2
 
     def get_baselines(self):

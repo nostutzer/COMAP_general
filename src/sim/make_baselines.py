@@ -18,6 +18,7 @@ import argparse
 from destr import Destriper 
 
 freq_idx = range(4 * 64)
+#freq_idx = [38]
 
 t = time.time()
 destr = Destriper()
