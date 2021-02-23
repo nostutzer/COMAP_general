@@ -221,10 +221,11 @@ class Destriper():
             self.read_split_data()
             
         
-    def run(self, sb = 1, freq = 1, freq_idx = None):
+    def run(self, feed = 1, sb = 1, freq = 1, freq_idx = None):
         if freq_idx == None:
-            self.sb         = sb 
-            self.freq       = freq
+            self.feed = feed
+            self.sb   = sb 
+            self.freq = freq
         else: 
             self.freq_idx = freq_idx
             if self.perform_split:
@@ -236,42 +237,32 @@ class Destriper():
         
 
         if self.perform_split:
-            print("hei", feed, sb, freq)
-            print(self.batch_def[:, feed, sb])
-            current_batch_def = self.batch_def[:, feed, sb]
-            self.unique_batches, self.indices = np.unique(self.batch_def[:, feed, sb], return_inverse = True)
-            self.N_batch_per_freq = self.unique_batches.shape[0]
-            
-            self.batch_buffer = [[] for i in range(self.N_batch_per_freq)]
-
-            for i in range(self.N_batch_per_freq):
-                print(self.split_scans[current_batch_def == self.unique_batches[i]])
-
-            print(self.unique_batches)
-            print(self.indices.shape)
-            #self.get_split_batch()
+            self.get_split_data()
+            self.initialize_P_and_F()
         else:
             self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
             self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
             self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
-            if self.masking:
-                #print("Masking:", self.mask)
-                t0 = time.time()
-                self.get_P()
-
-            self.sigma0_inv = 1 / self.sigma0
-            self.sigma0_inv[self.mask == 0] = 0
-            
-            #print("Get C_n_inv:")
+        if self.masking:
+            #print("Masking:", self.mask)
             t0 = time.time()
-            self.get_Cn_inv()
-            #print("Get C_n_inv time:", time.time() - t0, "sec")
+            self.get_P()
 
-            #print("Get PCP_inv:")
-            t0 = time.time()
-            self.get_PCP_inv()
-            #print("Get PCP_inv time:", time.time() - t0, "sec")
+        self.sigma0_inv = 1 / self.sigma0
+        self.sigma0_inv[self.mask == 0] = 0
+        
+        #print("Get C_n_inv:")
+        t0 = time.time()
+        self.get_Cn_inv()
+        #print("Get C_n_inv time:", time.time() - t0, "sec")
+
+        #print("Get PCP_inv:")
+        t0 = time.time()
+        self.get_PCP_inv()
+        #print("Get PCP_inv time:", time.time() - t0, "sec")
+        
+        print("halla there", feed, sb, freq)
 
     def read_split_def(self):
         split_names = []
@@ -356,7 +347,8 @@ class Destriper():
         exp_of_two = 2 ** np.arange(self.n_split)
         self.batch_def = np.sum(self.splits * exp_of_two[:, np.newaxis, np.newaxis, np.newaxis], axis = 0)
 
-    def get_split_data(self, currentNames, feed, sb, freq):
+    def get_split_data(self):
+        currentNames, feed, sb, freq = self.currentNames, self.feed, self.sb, self.freq
         N_in_batch = len(currentNames)
        
         tod_lens  = []

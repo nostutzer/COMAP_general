@@ -17,15 +17,15 @@ import re
 import argparse
 from destr import Destriper 
 
-freq_idx = range(4 * 64)
-#freq_idx = [38]
+#freq_idx = range(4 * 64)
+freq_idx = [38]
 
 t = time.time()
 destr = Destriper()
 print("Loading data and initializing pointing:")
 t0 = time.time()
-destr.get_data()
-destr.initialize_P_and_F()
+#destr.get_data()
+#destr.initialize_P_and_F()
 print("Loading time:", time.time() - t0, "sec")
 
 t0 = time.time()
@@ -34,9 +34,27 @@ print("Looping over frequencies:")
 def dummy(idx):
     #print("\n", "Processing frequency number:", idx, "\n")
     t = time.time()
-    destr.run(freq_idx = idx)
+    feed, sb, freq = destr.all_idx[:, freq_idx]
 
-    destr.make_baseline_only()
+    print("hei", feed, sb, freq)
+    print(destr.batch_def[:, feed, sb])
+    current_batch_def = destr.batch_def[:, feed, sb][:, 0]
+    destr.unique_batches, destr.indices = np.unique(destr.batch_def[:, feed, sb], return_inverse = True)
+    destr.N_batch_per_freq = destr.unique_batches.shape[0]
+    
+    destr.batch_buffer = [[] for i in range(destr.N_batch_per_freq)]
+
+    for i in range(1, destr.N_batch_per_freq):
+        #print(destr.split_scans[current_batch_def == destr.unique_batches[i]])
+        destr.currentNames = destr.names[current_batch_def == destr.unique_batches[i]]
+        
+        destr.run(feed, sb, freq)
+        
+        print("Destriping batch:")
+        destr.make_baseline_only()
+        print(destr.baseline_tod)
+        
+    sys.exit()
     
     #if baseline_tod.shape[0] * 4 * 64 >= 2147483647:
     #print((destr.sb, destr.freq, baseline_tod))
@@ -61,7 +79,7 @@ def dummy_save():
         
         while dummy.iterr.value <= 256 or not dummy.q.empty():
             outitem = dummy.q.get()
-            destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
+            #destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
             print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
 
 m = multiproc.Manager()
@@ -70,7 +88,7 @@ lock = m.Lock()
 iterr = multiproc.Value("i", 0)
 
 with multiproc.Pool(destr.Nproc, dummy_init, [q, lock, iterr]) as pool:
-    pool.apply_async(dummy_save)
+    #pool.apply_async(dummy_save)
     baselines = pool.map(dummy, freq_idx)
 
 pool.close()
