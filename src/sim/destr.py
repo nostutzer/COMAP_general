@@ -140,8 +140,10 @@ class Destriper():
 
         self.Nproc = int(Nproc.group(1))
         
+        perform_split = re.search(r"\nUSE_ACCEPT\s*=\s*(.true.|.false.)", params)  # Regex pattern to search for patch definition file.
+        
         self.perform_split = perform_split.group(1)
-        print("UBUBUBU", self.perform_split)
+        
         if self.perform_split == ".true.":
             self.perform_split = True 
             self.scheme = "baseline_only"
@@ -183,7 +185,7 @@ class Destriper():
 
             sidebands, freqs = np.meshgrid(sidebands, freqs, indexing = "ij")
 
-            self.all_freq_idx = np.array([sidebands.flatten(), freqs.flatten()])
+            self.all_idx = np.array([sidebands.flatten(), freqs.flatten()])
 
         runlist_file.close()    
         param_file.close()
@@ -217,39 +219,59 @@ class Destriper():
         if self.perform_split:
             self.read_split_def()
             self.read_split_data()
-            self.define_split_batches()
-        sys.exit()
+            
         
     def run(self, sb = 1, freq = 1, freq_idx = None):
         if freq_idx == None:
             self.sb         = sb 
             self.freq       = freq
         else: 
-            self.freq_idx   = freq_idx
-            sb, freq = self.all_freq_idx[:, freq_idx]
-            self.sb, self.freq = sb, freq
+            self.freq_idx = freq_idx
+            if self.perform_split:
+                feed, sb, freq = self.all_idx[:, freq_idx]
+                self.feed, self.sb, self.freq = feed, sb, freq
+            else:    
+                sb, freq = self.all_idx[:, freq_idx]
+                self.sb, self.freq = sb, freq
         
-        self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
-        self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
-        self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
-        if self.masking:
-            #print("Masking:", self.mask)
+        if self.perform_split:
+            print("hei", feed, sb, freq)
+            print(self.batch_def[:, feed, sb])
+            current_batch_def = self.batch_def[:, feed, sb]
+            self.unique_batches, self.indices = np.unique(self.batch_def[:, feed, sb], return_inverse = True)
+            self.N_batch_per_freq = self.unique_batches.shape[0]
+            
+            self.batch_buffer = [[] for i in range(self.N_batch_per_freq)]
+
+            for i in range(self.N_batch_per_freq):
+                print(self.split_scans[current_batch_def == self.unique_batches[i]])
+
+            print(self.unique_batches)
+            print(self.indices.shape)
+            #self.get_split_batch()
+        else:
+            self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
+            self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
+            self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
+
+            if self.masking:
+                #print("Masking:", self.mask)
+                t0 = time.time()
+                self.get_P()
+
+            self.sigma0_inv = 1 / self.sigma0
+            self.sigma0_inv[self.mask == 0] = 0
+            
+            #print("Get C_n_inv:")
             t0 = time.time()
-            self.get_P()
+            self.get_Cn_inv()
+            #print("Get C_n_inv time:", time.time() - t0, "sec")
 
-        self.sigma0_inv = 1 / self.sigma0
-        self.sigma0_inv[self.mask == 0] = 0
-        
-        #print("Get C_n_inv:")
-        t0 = time.time()
-        self.get_Cn_inv()
-        #print("Get C_n_inv time:", time.time() - t0, "sec")
-
-        #print("Get PCP_inv:")
-        t0 = time.time()
-        self.get_PCP_inv()
-        #print("Get PCP_inv time:", time.time() - t0, "sec")
+            #print("Get PCP_inv:")
+            t0 = time.time()
+            self.get_PCP_inv()
+            #print("Get PCP_inv time:", time.time() - t0, "sec")
 
     def read_split_def(self):
         split_names = []
@@ -330,41 +352,18 @@ class Destriper():
         self.splits = self.splits[:, scan_idx, :, :]
         self.split_scans = self.split_scans[scan_idx]
         self.Nscans = Nscans
-            
-    def define_split_batches(self):
+
         exp_of_two = 2 ** np.arange(self.n_split)
-        
-        batch_buffer = []
-        [batch_buffer.append([]) for i in range(self.Nbatch)]
-        all_batch_buffer = []
-        #for i in range(len(all_batch_buffer)):
-        for i in range(2):
-            feed, sb, freq = self.all_idx[:, i]
-            all_batch_buffer.append(batch_buffer.copy())
-            for j in range(self.Nscans):
-                batch = np.sum(self.splits[:, j, feed, sb] * exp_of_two).astype(int)
-                all_batch_buffer[i][batch].append([self.names[j], feed, sb, freq])
-        
-        self.batch_buffer = batch_buffer
-        print(all_batch_buffer)
-        print(len(all_batch_buffer), len(all_batch_buffer[0][0]), len(all_batch_buffer[1][0]))
-        
-        for i in range(2):
-            for j in range(self.Nbatch):
-                if len(all_batch_buffer[i][j]) > 1:
-                    batch_list = np.array(all_batch_buffer[i][j])
-                    self.get_split_batch(batch_list)
-        
-        
-    def get_split_batch(self, batch_list):
-        print(batch_list.shape)
-        N_in_batch = batch_list.shape[0]
+        self.batch_def = np.sum(self.splits * exp_of_two[:, np.newaxis, np.newaxis, np.newaxis], axis = 0)
+
+    def get_split_data(self, currentNames, feed, sb, freq):
+        N_in_batch = len(currentNames)
+       
         tod_lens  = []
         t = time.time()
 
         for i in range(N_in_batch):
-            name, feed, sb, freq = batch_list[i, :]
-            print(name, feed, sb, freq)
+            filename = currentNames[i]
 
             infile = h5py.File(self.infile_path + filename, "r")
             tod_shape  = infile["tod"].shape
@@ -373,16 +372,8 @@ class Destriper():
             infile.close()
 
         self.Nfeed = Nfeed
-        self.Nsb = Nsb
+        self.Nsb   = Nsb
         self.Nfreq = Nfreq
-
-        infile = h5py.File(self.infile_path + names[1], "r")
-        freq       = np.array(infile["nu"])[()]
-        freq       = freq[0, ...]
-        freq[0, :] = freq[0, ::-1]
-        freq[2, :] = freq[2, ::-1]   
-        self.freq  = freq
-        infile.close()
 
         print(time.time() - t, "sec")
 
@@ -392,13 +383,15 @@ class Destriper():
         tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
         Nsamp_tot = np.sum(tod_lens)
     
-        self.tod_buffer = np.zeros((Nsamp_tot), dtype = np.float32)
        
         #time_buffer = np.zeros(Nsamp_tot)
-        ra_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
-        dec_buffer = np.zeros(Nsamp_tot, dtype = np.float32)
-        self.sigma0_buffer = np.zeros((N_in_batch), dtype = np.float32)
-        self.mask_buffer = np.zeros((N_in_batch), dtype = np.uint8)
+       
+        self.ra  = np.zeros(Nsamp_tot, dtype = np.float32)
+        self.dec = np.zeros(Nsamp_tot, dtype = np.float32)
+        self.tod = np.zeros((Nsamp_tot), dtype = np.float32)
+        
+        self.sigma0 = np.zeros((N_in_batch), dtype = np.float32)
+        self.mask   = np.zeros((N_in_batch), dtype = np.uint8)
         
         Nbaseline_tot = 0
         Nperbaselines = [0]
@@ -407,9 +400,9 @@ class Destriper():
         self.start_stop = np.zeros((2, N_in_batch), dtype = int)
         
         for i in range(N_in_batch):
-            name, feed, sb, freq = batch_list[i, :]
+            name   = currentNames[i]
             infile = h5py.File(self.infile_path + name, "r")
-            print("Loading scan: ", i, ", ", name[i])
+            print("Loading scan: ", i, " / ", N_in_batch, ", ", name)
             freqmask          = np.array(infile["freqmask"])[feed, sb, freq]
 
             tod                = np.array(infile["tod"])[feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
@@ -421,10 +414,10 @@ class Destriper():
             
             sigma0 = np.array(infile["sigma0"])[feed, sb, freq]
             
-            pointing  = np.array(infile["point_cel"])[feed, ...] #[()]
+            pointing  = np.array(infile["point_cel"])[()]
 
-            ra        = pointing[:, 0] 
-            dec       = pointing[:, 1] 
+            ra        = pointing[feed, :, 0] 
+            dec       = pointing[feed, :, 1] 
             
             Nsamp = tod.shape[-1] 
             Nperscan.append(Nsamp)
@@ -443,34 +436,34 @@ class Destriper():
                 Nbaseline_tot += 1
                 Nperbaselines.append(excess)
             
-            self.sigma0_buffer[i] = sigma0
-            self.mask_buffer[i]   = freqmask
+            self.sigma0[i] = sigma0
+            self.mask[i]   = freqmask
         
             start = tod_cumlen[i]
             end   = tod_cumlen[(i + 1)]
+
             self.start_stop[0, i] = start
             self.start_stop[1, i] = end
 
-            self.tod_buffer[start:end, ...]  = tod
+            self.tod[start:end, ...]  = tod
             #time_buffer[start:end] = tod_time
-            ra_buffer[start:end]   = ra.flatten()
-            dec_buffer[start:end]  = dec.flatten()
+
+            self.ra[start:end]   = ra.flatten()
+            self.dec[start:end]  = dec.flatten()
             
             infile.close()
 
         self.dt = dt
-        
-        self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
-        self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
         self.Nbaseline    = Nbaseline_tot
         self.Nperbaselines = np.array(Nperbaselines)
         self.Nsamp        = Nsamp_tot
-        self.Nscans       = Nscans * Nfeed
+        self.Nscans       = N_in_batch
         self.tod_cumlen   = tod_cumlen
 
-        self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
-        self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
-        self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
+        
+        #self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
+        #self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
+        #self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
 
 
     def get_data(self):
@@ -516,7 +509,7 @@ class Destriper():
         freq       = freq[0, ...]
         freq[0, :] = freq[0, ::-1]
         freq[2, :] = freq[2, ::-1]   
-        self.freq  = freq
+        self.Freq  = freq
         infile.close()
         
         print("Number of scans:", Nscans)
@@ -915,7 +908,7 @@ class Destriper():
         self.cube = cube[self.sb, self.freq, :, :]
         
     def write_map(self, full_map, full_hits, full_rms):
-        Nside, dpix, fieldcent, ra, dec, freq = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec, self.freq
+        Nside, dpix, fieldcent, ra, dec, freq = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec, self.Freq
         
         outfile = self.outfile_path + self.patch_name + "_" + self.map_name + ".h5"
         #self.outfile = self.map_out_path + f"{self.patch_name}_{self.out_name}"         
