@@ -725,11 +725,11 @@ class Destriper():
         tod_lens = self.tod_lens
         tod_lens = tod_lens[::self.Nfeed]
 
-        #outfile_path = self.infile_path + "baselines/"
+        outfile_path = self.infile_path + "baselines/"
         #outfile_path = self.infile_path + "baselines/all_in_one/"
-        #outfile_path = self.infile_path + "baselines/batch_of_half"
-        outfile_path = self.infile_path + "baselines/batch_of_third"
-        #outfile_path = self.infile_path + "baselines/batch_of_ninth"
+        #outfile_path = self.infile_path + "baselines/batch_of_half/"
+        #outfile_path = self.infile_path + "baselines/batch_of_third/"
+        #outfile_path = self.infile_path + "baselines/batch_of_ninth/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
         #outfile_path = self.infile_path + "null_test/"
         

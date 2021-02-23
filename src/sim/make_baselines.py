@@ -43,8 +43,17 @@ def dummy(idx):
     #destr.save_baseline_tod_per_freq(destr.sb, destr.freq, destr.baseline_tod)
     initem = [destr.sb, destr.freq, destr.baseline_tod]
     dummy.q.put(initem)
+    
     dummy.iterr.value += 1
+    
     print("Frequency loop progress: ", dummy.iterr.value / 256 * 100, "%")
+
+    if not dummy.q.empty():
+        with dummy.lock:
+            outitem = dummy.q.get()
+            print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
+            destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
+
     return None
     #return [destr.sb, destr.freq, baseline_tod]
     #else:
@@ -70,7 +79,7 @@ lock = m.Lock()
 iterr = multiproc.Value("i", 0)
 
 with multiproc.Pool(destr.Nproc, dummy_init, [q, lock, iterr]) as pool:
-    pool.apply_async(dummy_save)
+    #pool.apply_async(dummy_save)
     baselines = pool.map(dummy, freq_idx)
 
 pool.close()
