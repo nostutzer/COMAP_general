@@ -43,6 +43,7 @@ def dummy(idx):
     #destr.save_baseline_tod_per_freq(destr.sb, destr.freq, destr.baseline_tod)
     initem = [destr.sb, destr.freq, destr.baseline_tod]
     dummy.q.put(initem)
+    dummy.iterr.value += 1
     print("Frequency loop progress: ", dummy.iterr.value / 256 * 100, "%")
     return None
     #return [destr.sb, destr.freq, baseline_tod]
@@ -59,7 +60,6 @@ def dummy_save():
     while dummy.iterr.value <= 256 or not dummy.q.empty():
         if not dummy.q.empty():
             with dummy.lock:
-                dummy.iterr.value += 1
                 outitem = dummy.q.get()
                 print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
                 destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
