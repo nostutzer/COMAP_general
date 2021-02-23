@@ -17,56 +17,66 @@ import re
 import argparse
 from destr import Destriper 
 
-#freq_idx = range(4 * 64)
-freq_idx = [38]
 
 t = time.time()
 destr = Destriper()
-print("Loading data and initializing pointing:")
+
+if destr.perform_split:
+    #freq_idx = range(18 * 4 * 64)
+    freq_idx = [38]
+else:
+    freq_idx = range(4 * 64)
+
+
 t0 = time.time()
-#destr.get_data()
-#destr.initialize_P_and_F()
+
+if not destr.perform_split:
+    print("Loading data and initializing pointing:")
+    destr.get_data()
+    destr.initialize_P_and_F()
 print("Loading time:", time.time() - t0, "sec")
 
 t0 = time.time()
 print("Looping over frequencies:")
 
 def dummy(idx):
-    #print("\n", "Processing frequency number:", idx, "\n")
+    print("\n", "Processing frequency number:", idx, "\n")
     t = time.time()
-    feed, sb, freq = destr.all_idx[:, freq_idx]
-
-    print("hei", feed, sb, freq)
-    print(destr.batch_def[:, feed, sb])
-    current_batch_def = destr.batch_def[:, feed, sb][:, 0]
-    destr.unique_batches, destr.indices = np.unique(destr.batch_def[:, feed, sb], return_inverse = True)
-    destr.N_batch_per_freq = destr.unique_batches.shape[0]
     
-    destr.batch_buffer = [[] for i in range(destr.N_batch_per_freq)]
+    if destr.perform_split:
+        feed, sb, freq = destr.all_idx[:, freq_idx]
 
-    for i in range(1, destr.N_batch_per_freq):
-        #print(destr.split_scans[current_batch_def == destr.unique_batches[i]])
-        destr.currentNames = destr.names[current_batch_def == destr.unique_batches[i]]
+        print("hei", feed, sb, freq)
         
-        destr.run(feed, sb, freq)
+        current_batch_def = destr.batch_def[:, feed, sb][:, 0]
+        destr.unique_batches, destr.indices = np.unique(destr.batch_def[:, feed, sb], return_inverse = True)
+        destr.N_batch_per_freq = destr.unique_batches.shape[0]
         
-        print("Destriping batch:")
-        destr.make_baseline_only()
-        print(destr.baseline_tod)
-        
-    sys.exit()
+        destr.batch_buffer = [[] for i in range(destr.N_batch_per_freq)]
+
+        for i in range(1, destr.N_batch_per_freq):
+            #print(destr.split_scans[current_batch_def == destr.unique_batches[i]])
+            destr.currentNames = destr.names[current_batch_def == destr.unique_batches[i]]
+            
+            destr.run(feed, sb, freq)
+            
+            print("Destriping batch:")
+            destr.make_baseline_only()
+            print(destr.baseline_tod)
+        sys.exit()
     
-    #if baseline_tod.shape[0] * 4 * 64 >= 2147483647:
-    #print((destr.sb, destr.freq, baseline_tod))
-    #destr.save_baseline_tod_per_freq(destr.sb, destr.freq, destr.baseline_tod)
-    initem = [destr.sb, destr.freq, destr.baseline_tod]
-    dummy.q.put(initem)
-    dummy.iterr.value += 1
-    print("Frequency loop progress: ", dummy.iterr.value / 256 * 100, "%")
-    return None
-    #return [destr.sb, destr.freq, baseline_tod]
-    #else:
-    #    return baseline_tod
+    else:        
+        #if baseline_tod.shape[0] * 4 * 64 >= 2147483647:
+        #print((destr.sb, destr.freq, baseline_tod))
+        #destr.save_baseline_tod_per_freq(destr.sb, destr.freq, destr.baseline_tod)
+        initem = [destr.sb, destr.freq, destr.baseline_tod]
+        dummy.q.put(initem)
+        dummy.iterr.value += 1
+        print("Frequency loop progress: ", dummy.iterr.value / 256 * 100, "%")
+        return None
+        #return [destr.sb, destr.freq, baseline_tod]
+        #else:
+        #    return baseline_tod
 
 def dummy_init(q, lock, iterr):
     dummy.q = q
