@@ -1010,6 +1010,33 @@ class Destriper():
             data[:-1, sb, freq, :] = baseline
             outfile.close()
 
+    def save_baseline_tod_per_batch(self, feed, sb, freq, baseline_buffer):
+        tod_lens = self.tod_lens
+
+        outfile_path = self.infile_path + "splittest/"
+        
+        print("Saveing baselines to:", outfile_path)
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+        
+        for i in range(len(self.names)):
+            start, stop = self.start_stop[:, i]
+
+            baseline      = baseline_buffer[start:stop]
+         
+            baseline = baseline.astype(np.float32)
+            
+            new_name = self.names[i].split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+            
+            outfile = h5py.File(outfile_path + new_name, "a")
+            if "tod_baseline" not in outfile.keys():
+                outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[1]), dtype = "float32")
+            
+            data = outfile["tod_baseline"]
+            data[feed, sb, freq, :] = baseline
+            outfile.close()
+
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
     #paramfile = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_test_co6.txt"
