@@ -21,7 +21,14 @@ plt.rcParams.update(fonts)
 
 path = "/home/sagittarius/Documents/COMAP_general/COMAP_general/data/2D_xs/"
 
-files = os.listdir(path)
+file_list = os.listdir(path)
+files = []
+for file in file_list:
+    if "co6" in file:
+        files.append(file)
+
+print(files)
+
 xs = np.zeros((len(files), 14, 14))
 ks  = np.zeros((len(files), 2, 14))
 edges_par = np.zeros((len(files), 15))
@@ -117,7 +124,7 @@ for i in range(5):
 #fig.tight_layout()
 
 
-plt.savefig("/home/sagittarius/Documents/COMAP_general/COMAP_general/figs/XS_PCA.pdf", bbox_inches = "tight")
+plt.savefig("/home/sagittarius/Documents/COMAP_general/COMAP_general/figs/XS_PCA_co6.pdf", bbox_inches = "tight")
 
 
 
