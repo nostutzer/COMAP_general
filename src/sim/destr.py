@@ -418,11 +418,11 @@ class Destriper():
 
             infile = h5py.File(self.infile_path + name, "r")
 
-            self.mask[i]        = np.array(infile["freqmask"][feed, sb, freq])
-            self.sigma0[i]      = np.array(infile["sigma0"][feed, sb, freq])
-            self.tod[start:end] = np.array(infile["tod"][feed, sb, freq, :]) #[()]#.astype(dtype=np.float32, copy=False) 
-            self.ra[start:end]  = np.array(infile["point_cel"][feed, :, 0]) 
-            self.dec[start:end] = np.array(infile["point_cel"][feed, :, 1]) 
+            self.mask[i]        = infile["freqmask"][feed, sb, freq]
+            self.sigma0[i]      = infile["sigma0"][feed, sb, freq]
+            self.tod[start:end] = infile["tod"][feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
+            self.ra[start:end]  = infile["point_cel"][feed, :, 0] 
+            self.dec[start:end] = infile["point_cel"][feed, :, 1] 
             infile.close()
 
             #print("Loading scan: ", i, " / ", N_in_batch, ", ", name, ", Time:", time.time() - ti)
@@ -474,7 +474,7 @@ class Destriper():
 
         infile = h5py.File(self.infile_path + names[1], "r")
         freq       = np.array(infile["nu"])[()]
-        freq       = freq[0, ...]
+        freq       = infile["nu"][0, ...]
         freq[0, :] = freq[0, ::-1]
         freq[2, :] = freq[2, ::-1]   
         self.Freq  = freq
@@ -505,33 +505,28 @@ class Destriper():
         for i in range(Nscans):
             infile = h5py.File(self.infile_path + names[i], "r")
             print("Loading scan: ", i, ", ", names[i])
-            freqmask          = np.array(infile["freqmask"])
+            freqmask          = infile["freqmask"][:-1, ...]
 
             freqmask[:, 0, :] = freqmask[:, 0, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
             freqmask[:, 2, :] = freqmask[:, 2, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
-            freqmask          = freqmask[:-1, :, :]
             
-            tod                = np.array(infile["tod"])[()] #[()]#.astype(dtype=np.float32, copy=False) 
+            tod                = infile["tod"][:-1, ...] #[()]#.astype(dtype=np.float32, copy=False) 
             
             tod[:, 0, :, :]    = tod[:, 0, ::-1, :] #[()]#.astype(dtype=np.float32, copy=False) 
             tod[:, 2, :, :]    = tod[:, 2, ::-1, :] #[()]#.astype(dtype=np.float32, copy=False) 
-            tod                = tod[:-1, :, :, :]
 
             if tod.dtype != np.float32:
                 raise ValueError("The input TOD should be of dtype float32!")
 
-            tod_time   = np.array(infile["time"])[()] * 3600 * 24
+            tod_time   = infile["time"][()] * 3600 * 24
             
-            sigma0 = np.array(infile["sigma0"])[()]
+            sigma0 = infile["sigma0"])[:-1, ...]
             
             sigma0[:, 0, :]    = sigma0[:, 0, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
             sigma0[:, 2, :]    = sigma0[:, 2, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
-            sigma0             = sigma0[:-1, :, :]
 
-            pointing  = np.array(infile["point_cel"])[()] #[()]
-
-            ra        = pointing[:-1, :, 0] 
-            dec       = pointing[:-1, :, 1] 
+            ra        = infile["point_cel"][:-1, :, 0] 
+            dec       = infile["point_cel"][:-1, :, 1] 
             
 
             Nsamp = tod.shape[-1] 
