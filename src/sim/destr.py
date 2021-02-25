@@ -222,6 +222,7 @@ class Destriper():
             
         
     def run(self, feed = 1, sb = 1, freq = 1, freq_idx = None):
+        t0 = time.time()
         if freq_idx == None:
             self.feed = feed
             self.sb   = sb 
@@ -238,22 +239,24 @@ class Destriper():
 
         if self.perform_split:
             self.get_split_data()
+            #print("Get P and F:"); t0 = time.time()
             self.initialize_P_and_F()
+            #print("Get P and F time:", time.time() - t0, "sec")
         else:
             self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
             self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
             self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
         if self.masking:
-            #print("Masking:", self.mask)
-            t0 = time.time()
+            #print("Get pointing:");t0 = time.time()
             self.get_P()
+            #print("Get pointing time:", time.time() - t0, "sec")
 
+        #print("Get C_n_inv:")
+        t0 = time.time()
         self.sigma0_inv = 1 / self.sigma0
         self.sigma0_inv[self.mask == 0] = 0
         
-        #print("Get C_n_inv:")
-        t0 = time.time()
         self.get_Cn_inv()
         #print("Get C_n_inv time:", time.time() - t0, "sec")
 
@@ -262,7 +265,6 @@ class Destriper():
         self.get_PCP_inv()
         #print("Get PCP_inv time:", time.time() - t0, "sec")
         
-        print("halla there", feed, sb, freq)
 
     def read_split_def(self):
         split_names = []
@@ -352,7 +354,6 @@ class Destriper():
         N_in_batch = len(currentNames)
        
         tod_lens  = []
-        t = time.time()
 
         for i in range(N_in_batch):
             filename = currentNames[i]
@@ -367,7 +368,6 @@ class Destriper():
         self.Nsb   = Nsb
         self.Nfreq = Nfreq
 
-        print(time.time() - t, "sec")
 
         tod_lens = np.array(tod_lens)
         self.tod_lens = tod_lens
@@ -375,75 +375,57 @@ class Destriper():
         tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
         Nsamp_tot = np.sum(tod_lens)
     
+        # Computing the length of each baseline
+        infile = h5py.File(self.infile_path + currentNames[0], "r")
+        tod_time   = np.array(infile["time"])[:2] * 3600 * 24
+        infile.close()
        
-        #time_buffer = np.zeros(Nsamp_tot)
-       
+        dt    = tod_time[1] - tod_time[0]
+
+        Nperbaseline = int(round(self.baseline_time / dt))
+
+        Nbaseline = np.floor(tod_lens / Nperbaseline).astype(int)
+
+        excess = tod_lens - Nperbaseline * Nbaseline
+
+        Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0)
+
+        Nperbaselines = [0]
+        tu = time.time()
+        for i in range(N_in_batch):
+            for j in range(Nbaseline[i]):
+                Nperbaselines.append(Nperbaseline)
+            if excess[i] > 0:
+                Nperbaselines.append(excess[i])
+
         self.ra  = np.zeros(Nsamp_tot, dtype = np.float32)
         self.dec = np.zeros(Nsamp_tot, dtype = np.float32)
-        self.tod = np.zeros((Nsamp_tot), dtype = np.float32)
+        self.tod = np.zeros(Nsamp_tot, dtype = np.float32)
         
         self.sigma0 = np.zeros((N_in_batch), dtype = np.float32)
         self.mask   = np.zeros((N_in_batch), dtype = np.uint8)
         
-        Nbaseline_tot = 0
-        Nperbaselines = [0]
-        Nperscan      = [0]
-
         self.start_stop = np.zeros((2, N_in_batch), dtype = int)
         
         for i in range(N_in_batch):
+            #ti = time.time()
             name   = currentNames[i]
-            infile = h5py.File(self.infile_path + name, "r")
-            print("Loading scan: ", i, " / ", N_in_batch, ", ", name)
-            freqmask          = np.array(infile["freqmask"])[feed, sb, freq]
-
-            tod                = np.array(infile["tod"])[feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
             
-            if tod.dtype != np.float32:
-                raise ValueError("The input TOD should be of dtype float32!")
-
-            tod_time   = np.array(infile["time"])[()] * 3600 * 24
-            
-            sigma0 = np.array(infile["sigma0"])[feed, sb, freq]
-            
-            pointing  = np.array(infile["point_cel"])[()]
-
-            ra        = pointing[feed, :, 0] 
-            dec       = pointing[feed, :, 1] 
-            
-            Nsamp = tod.shape[-1] 
-            Nperscan.append(Nsamp)
-            dt    = tod_time[1] - tod_time[0]
-                        
-            Nperbaseline = int(round(self.baseline_time / dt))
-            #N_baseline = int(round((tod_time[-1] - tod_time[0]) / self.baseline_time))
-            Nbaseline = int(np.floor(Nsamp / Nperbaseline))
-            #print(N_perbaseline, dt * N_perbaseline, int(round(self.baseline_time / dt)))
-            excess = Nsamp - Nperbaseline * Nbaseline
-        
-            for k in range(Nbaseline):
-                Nperbaselines.append(Nperbaseline)
-        
-            if excess > 0:
-                Nbaseline_tot += 1
-                Nperbaselines.append(excess)
-            
-            self.sigma0[i] = sigma0
-            self.mask[i]   = freqmask
-        
             start = tod_cumlen[i]
             end   = tod_cumlen[(i + 1)]
-
             self.start_stop[0, i] = start
             self.start_stop[1, i] = end
 
-            self.tod[start:end, ...]  = tod
-            #time_buffer[start:end] = tod_time
+            infile = h5py.File(self.infile_path + name, "r")
 
-            self.ra[start:end]   = ra.flatten()
-            self.dec[start:end]  = dec.flatten()
-            
+            self.mask[i]        = np.array(infile["freqmask"][feed, sb, freq])
+            self.sigma0[i]      = np.array(infile["sigma0"][feed, sb, freq])
+            self.tod[start:end] = np.array(infile["tod"][feed, sb, freq, :]) #[()]#.astype(dtype=np.float32, copy=False) 
+            self.ra[start:end]  = np.array(infile["point_cel"][feed, :, 0]) 
+            self.dec[start:end] = np.array(infile["point_cel"][feed, :, 1]) 
             infile.close()
+
+            #print("Loading scan: ", i, " / ", N_in_batch, ", ", name, ", Time:", time.time() - ti)
 
         self.dt = dt
         self.Nbaseline    = Nbaseline_tot
@@ -451,12 +433,6 @@ class Destriper():
         self.Nsamp        = Nsamp_tot
         self.Nscans       = N_in_batch
         self.tod_cumlen   = tod_cumlen
-
-        
-        #self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
-        #self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
-        #self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
-
 
     def get_data(self):
         tod_lens  = []
@@ -627,7 +603,7 @@ class Destriper():
             self.get_P()
             #print("Get pointing matrix time:", time.time() - t0, "sec")
 
-        #print("Get F:")
+        #print("Get F:");t0 = time.time()
         t0 = time.time()
         self.get_F()
         #print("Get F time:", time.time() - t0, "sec")
@@ -675,35 +651,44 @@ class Destriper():
     def get_P(self):
         Nsamp, Npix, Nscans, cumlen, mask = self.Nsamp, self.Npix, self.Nscans, self.tod_cumlen, self.mask
 
+        tt = time.time()
+
         hits = np.ones(Nsamp)
-        
         if self.masking:
             for i in range(Nscans):
                 start = cumlen[i]
                 end = cumlen[i + 1]
                 hits[start:end] = mask[i]
-
         rows = np.arange(0, Nsamp, 1)
         cols = self.px        
+        #print("Filling P1:", time.time() - tt, "sec");tt = time.time()
         
         self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix), dtype = np.uint8)
+        #print("Filling P2:", time.time() - tt, "sec");tt = time.time()
         self.PT = csc_matrix(self.P.T, dtype = np.uint8)
+        #print("Filling PT:", time.time() - tt, "sec")
         
     def get_F(self):
         Nsamp, Nbaseline, Nperbaselines = self.Nsamp, self.Nbaseline, self.Nperbaselines
+        #tf = time.time()
+
         Nperbaselines_cum = np.zeros(Nbaseline + 1)
         Nperbaselines_cum = np.cumsum(Nperbaselines)
         
         ones = np.ones(Nsamp)
         rows = np.arange(0, Nsamp, 1)
         cols = np.zeros(Nsamp)
-        
+        #print("Precomputation of F", time.time() - tf, "sec"); tf = time.time()
         for i in range(Nbaseline):
             start = Nperbaselines_cum[i]
             end = Nperbaselines_cum[i + 1]
             cols[start:end] = np.tile(i, Nperbaselines[i + 1])
+        #print("Filling F1:", time.time() - tf, "sec");tf = time.time()
+        
         self.F = csc_matrix((ones, (rows, cols)), shape = (Nsamp, Nbaseline), dtype = np.uint8)
+        #print("Filling F2:", time.time() - tf, "sec");tf = time.time()
         self.FT = csc_matrix(self.F.T, dtype = np.uint8)
+        #print("Filling FT:", time.time() - tf, "sec")
     
     def get_Cn_inv(self):
         Nsamp, Nscans, cumlen = self.Nsamp, self.Nscans, self.tod_cumlen
@@ -1010,32 +995,43 @@ class Destriper():
             data[:-1, sb, freq, :] = baseline
             outfile.close()
 
-    def save_baseline_tod_per_batch(self, feed, sb, freq, baseline_buffer):
-        tod_lens = self.tod_lens
+    def save_baseline_tod_per_batch(self):
+        feed, sb, freq = self.feed, self.sb, self.freq
+        currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
+        start_stop  = self.start_stop
+        #tod_lens = self.tod_lens
 
-        outfile_path = self.infile_path + "splittest/"
+        #outfile_path = self.infile_path + "splittest/"
+        outfile_path = self.infile_path + "splittest2/"
         
-        print("Saveing baselines to:", outfile_path)
+        #print("Saveing baselines to:", outfile_path)
         if not os.path.exists(outfile_path):
             os.mkdir(outfile_path)
-        
-        for i in range(len(self.names)):
-            start, stop = self.start_stop[:, i]
+
+        for i in range(len(currentNames)):
+            #ti = time.time()
+            start, stop = start_stop[:, i]
 
             baseline      = baseline_buffer[start:stop]
          
             baseline = baseline.astype(np.float32)
             
-            new_name = self.names[i].split(".")
+            new_name = currentNames[i].split(".")
             new_name = new_name[0] + "_temp." + new_name[1]
             
             outfile = h5py.File(outfile_path + new_name, "a")
             if "tod_baseline" not in outfile.keys():
-                outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[1]), dtype = "float32")
+                outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[0]), dtype = "float32")
+            
             
             data = outfile["tod_baseline"]
+
+            if data.shape[-1] != baseline.shape[-1]:
+                print("Wrong shape!", data.shape, baseline.shape, start, stop, stop - start, tod_lens[i], baseline_buffer[start:stop].shape, baseline_buffer.shape, i, len(self.currentNames), self.freq_idx)
+                
             data[feed, sb, freq, :] = baseline
             outfile.close()
+            #print("Save time iterration:", time.time() - ti, "sec")
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
