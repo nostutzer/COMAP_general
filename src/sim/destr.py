@@ -210,13 +210,13 @@ class Destriper():
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
 
-        print("Perform split:", self.perform_split)
-        print("Accept data_folder: ", accpt_data_path)
-        print("Accept ID: ", accpt_id)
-        print("Split ID: ", split_id)
-        print("Split data file:", self.acceptfile_name)
-        print("Split def file:", self.split_def)
         if self.perform_split:
+            print("Perform split:", self.perform_split)
+            print("Accept data_folder: ", accpt_data_path)
+            print("Accept ID: ", accpt_id)
+            print("Split ID: ", split_id)
+            print("Split data file:", self.acceptfile_name)
+            print("Split def file:", self.split_def)
             self.read_split_def()
             self.read_split_data()
             
@@ -299,8 +299,8 @@ class Destriper():
     def read_split_data(self):
         
         with h5py.File(self.acceptfile_name, "r") as split_file:
-            split_list = np.array(split_file["jk_list"])[()]
-            split_scans  = np.array(split_file["scan_list"])[()] 
+            split_list  = split_file["jk_list"][()]
+            split_scans = split_file["scan_list"][()] 
         split_file.close()
 
         self.split_scans = split_scans
@@ -377,7 +377,7 @@ class Destriper():
     
         # Computing the length of each baseline
         infile = h5py.File(self.infile_path + currentNames[0], "r")
-        tod_time   = np.array(infile["time"])[:2] * 3600 * 24
+        tod_time   = infile["time"][:2] * 3600 * 24
         infile.close()
        
         dt    = tod_time[1] - tod_time[0]
@@ -473,7 +473,6 @@ class Destriper():
         self.names = names
 
         infile = h5py.File(self.infile_path + names[1], "r")
-        freq       = np.array(infile["nu"])[()]
         freq       = infile["nu"][0, ...]
         freq[0, :] = freq[0, ::-1]
         freq[2, :] = freq[2, ::-1]   
@@ -520,7 +519,7 @@ class Destriper():
 
             tod_time   = infile["time"][()] * 3600 * 24
             
-            sigma0 = infile["sigma0"])[:-1, ...]
+            sigma0 = infile["sigma0"][:-1, ...]
             
             sigma0[:, 0, :]    = sigma0[:, 0, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
             sigma0[:, 2, :]    = sigma0[:, 2, ::-1] #[()]#.astype(dtype=np.float32, copy=False) 
@@ -997,8 +996,10 @@ class Destriper():
         #tod_lens = self.tod_lens
 
         #outfile_path = self.infile_path + "splittest/"
-        outfile_path = self.infile_path + "splittest2/"
+        #outfile_path = self.infile_path + "splittest2/"
         
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/"
+
         #print("Saveing baselines to:", outfile_path)
         if not os.path.exists(outfile_path):
             os.mkdir(outfile_path)
