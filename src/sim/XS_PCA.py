@@ -24,7 +24,7 @@ path = "/home/sagittarius/Documents/COMAP_general/COMAP_general/data/2D_xs/"
 file_list = os.listdir(path)
 files = []
 for file in file_list:
-    if "co6" in file:
+    if "co2" in file:
         files.append(file)
 
 print(files)
@@ -87,7 +87,8 @@ majorlist_y = log2lin(majorticks, ybins)
 
 fig, ax = plt.subplots(5, 5, figsize = (10, 10), sharex = True, sharey = True)
 
-cmap = cm.RdBu
+#cmap = cm.RdBu
+cmap = "bwr"
 vmin = -0.5
 vmax = 0.5
 clabels = list(np.arange(-0.4, 0.5, 0.2))
@@ -124,7 +125,7 @@ for i in range(5):
 #fig.tight_layout()
 
 
-plt.savefig("/home/sagittarius/Documents/COMAP_general/COMAP_general/figs/XS_PCA_co6.pdf", bbox_inches = "tight")
+plt.savefig("/home/sagittarius/Documents/COMAP_general/COMAP_general/figs/XS_PCA_co2.pdf", bbox_inches = "tight")
 
 
 
