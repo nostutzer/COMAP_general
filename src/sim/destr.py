@@ -16,6 +16,7 @@ import os
 import re
 import argparse
 import warnings
+import random
 
 warnings.filterwarnings("ignore", category=RuntimeWarning) #ignore warnings caused by weights cut-off
 
@@ -171,7 +172,7 @@ class Destriper():
             self.split_def = str(split_def.group(1))                                # Extracting path
 
 
-            idx_feed = np.arange(18, dtype = int)
+            idx_feed = np.arange(19, dtype = int)
             idx_sb   = np.arange(4,  dtype = int)
             idx_freq = np.arange(64, dtype = int)
  
@@ -210,6 +211,7 @@ class Destriper():
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
 
+
         if self.perform_split:
             print("Perform split:", self.perform_split)
             print("Accept data_folder: ", accpt_data_path)
@@ -219,8 +221,9 @@ class Destriper():
             print("Split def file:", self.split_def)
             self.read_split_def()
             self.read_split_data()
+            self.read_feeds_alive()
             
-        
+            
     def run(self, feed = 1, sb = 1, freq = 1, freq_idx = None):
         t0 = time.time()
         if freq_idx == None:
@@ -235,7 +238,6 @@ class Destriper():
             else:    
                 sb, freq = self.all_idx[:, freq_idx]
                 self.sb, self.freq = sb, freq
-        
 
         if self.perform_split:
             self.get_split_data()
@@ -265,6 +267,17 @@ class Destriper():
         self.get_PCP_inv()
         #print("Get PCP_inv time:", time.time() - t0, "sec")
         
+    def read_feeds_alive(self):
+        feeds_alive = {}
+        
+        for filename in os.listdir(self.infile_path):
+            if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
+                infile = h5py.File(self.infile_path + filename, "r")
+                feeds  = infile["pixels"][()]
+                feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
+                infile.close()
+
+        self.feeds_alive = feeds_alive
 
     def read_split_def(self):
         split_names = []
@@ -389,21 +402,27 @@ class Destriper():
         excess = tod_lens - Nperbaseline * Nbaseline
 
         Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0)
-
+        
         Nperbaselines = [0]
+        scan_per_baseline = []
         tu = time.time()
         for i in range(N_in_batch):
+            Nbaseline_in_scan = 0
             for j in range(Nbaseline[i]):
                 Nperbaselines.append(Nperbaseline)
+                scan_per_baseline.append(currentNames[i])
+                Nbaseline_in_scan += 1
             if excess[i] > 0:
                 Nperbaselines.append(excess[i])
+                scan_per_baseline.append(currentNames[i])
+                Nbaseline_in_scan += 1
 
         self.ra  = np.zeros(Nsamp_tot, dtype = np.float32)
         self.dec = np.zeros(Nsamp_tot, dtype = np.float32)
         self.tod = np.zeros(Nsamp_tot, dtype = np.float32)
         
-        self.sigma0 = np.zeros((N_in_batch), dtype = np.float32)
-        self.mask   = np.zeros((N_in_batch), dtype = np.uint8)
+        self.sigma0 = np.zeros(N_in_batch, dtype = np.float32)
+        self.mask   = np.zeros(N_in_batch, dtype = np.uint8)
         
         self.start_stop = np.zeros((2, N_in_batch), dtype = int)
         
@@ -411,34 +430,44 @@ class Destriper():
             #ti = time.time()
             name   = currentNames[i]
             
-            start = tod_cumlen[i]
-            end   = tod_cumlen[(i + 1)]
-            self.start_stop[0, i] = start
-            self.start_stop[1, i] = end
+            alive = self.feeds_alive[name]
+            feed_idx  = np.where(alive == feed)[0]
 
-            infile = h5py.File(self.infile_path + name, "r")
+            if feed_idx.size == 1:
+                #if i == 0:
+                #    print("Loader:", self.freq_idx, feed, sb, freq, N_in_batch, "|", alive[feed_idx][0], feed, feed_idx[0])
+                start = tod_cumlen[i]
+                end   = tod_cumlen[(i + 1)]
+                self.start_stop[0, i] = start
+                self.start_stop[1, i] = end
+                infile = h5py.File(self.infile_path + name, "r")
 
-            self.mask[i]        = infile["freqmask"][feed, sb, freq]
-            self.sigma0[i]      = infile["sigma0"][feed, sb, freq]
-            self.tod[start:end] = infile["tod"][feed, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
-            self.ra[start:end]  = infile["point_cel"][feed, :, 0] 
-            self.dec[start:end] = infile["point_cel"][feed, :, 1] 
-            infile.close()
-
+                self.mask[i]        = infile["freqmask"][feed_idx, sb, freq]
+                self.sigma0[i]      = infile["sigma0"][feed_idx, sb, freq]
+                self.tod[start:end] = infile["tod"][feed_idx, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
+                self.ra[start:end]  = infile["point_cel"][feed_idx, :, 0] 
+                self.dec[start:end] = infile["point_cel"][feed_idx, :, 1] 
+                infile.close()
+            else:
+                #print("Passing this feed idx", feed_idx, feed)
+                continue
             #print("Loading scan: ", i, " / ", N_in_batch, ", ", name, ", Time:", time.time() - ti)
-
+        
         self.dt = dt
         self.Nbaseline    = Nbaseline_tot
         self.Nperbaselines = np.array(Nperbaselines)
         self.Nsamp        = Nsamp_tot
         self.Nscans       = N_in_batch
         self.tod_cumlen   = tod_cumlen
+        self.scan_per_baseline = np.array(scan_per_baseline)
 
     def get_data(self):
         tod_lens  = []
         names     = []
         Nscans    = 0
         t = time.time()
+        files = os.listdir(self.infile_path)
+        random.shuffle(files)
         if self.obsID_map:
             print("obsID ", self.obsID)
             for filename in os.listdir(self.infile_path):
@@ -456,7 +485,7 @@ class Destriper():
                     else:
                         print("No scan detected for this obsID!")
         else:
-            for filename in os.listdir(self.infile_path):
+            for filename in files:
                 if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
                     Nscans += 1
                     infile = h5py.File(self.infile_path + filename, "r")
@@ -526,7 +555,6 @@ class Destriper():
 
             ra        = infile["point_cel"][:-1, :, 0] 
             dec       = infile["point_cel"][:-1, :, 1] 
-            
 
             Nsamp = tod.shape[-1] 
             Nperscan.append(Nsamp)
@@ -558,19 +586,17 @@ class Destriper():
             tod = tod.transpose(0, 3, 1, 2)
             tod = tod.reshape(tod.shape[0] * tod.shape[1], Nsb, Nfreq)
             self.tod_buffer[start:end, ...]  = tod
-            #time_buffer[start:end] = tod_time
+
             ra_buffer[start:end]   = ra.flatten()
             dec_buffer[start:end]  = dec.flatten()
             
             infile.close()
 
         self.dt = dt
-        #tod_buffer = np.trim_zeros(tod_buffer)
-        #self.tod_buffer          = tod_buffer #- np.nanmean(tod_buffer, axis = 0) 
+        
         self.sigma0_buffer       = self.sigma0_buffer.reshape(Nscans * Nfeed, Nsb, Nfreq)
         self.mask_buffer         = self.mask_buffer.reshape(Nscans * Nfeed, Nsb, Nfreq)
         
-        #self.time         = time_buffer      #np.trim_zeros(time_buffer)
         self.ra           = ra_buffer        #np.trim_zeros(ra_buffer)
         self.dec          = dec_buffer       #np.trim_zeros(dec_buffer)
         self.Nbaseline    = Nbaseline_tot
@@ -578,7 +604,7 @@ class Destriper():
         self.Nsamp        = Nsamp_tot
         self.Nscans       = Nscans * Nfeed
         self.tod_cumlen   = tod_cumlen
-
+        
         self.tod_buffer          = self.tod_buffer.reshape(   self.Nsamp,  Nsb * Nfreq) 
         self.sigma0_buffer       = self.sigma0_buffer.reshape(self.Nscans, Nsb * Nfreq)
         self.mask_buffer         = self.mask_buffer.reshape(  self.Nscans, Nsb * Nfreq)
@@ -654,7 +680,10 @@ class Destriper():
                 end = cumlen[i + 1]
                 hits[start:end] = mask[i]
         rows = np.arange(0, Nsamp, 1)
-        cols = self.px        
+        cols = self.px    
+        if np.any(cols < 0):
+            cols[cols < 0] = 0    
+        
         #print("Filling P1:", time.time() - tt, "sec");tt = time.time()
         
         self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix), dtype = np.uint8)
@@ -687,7 +716,7 @@ class Destriper():
     def get_Cn_inv(self):
         Nsamp, Nscans, cumlen = self.Nsamp, self.Nscans, self.tod_cumlen
         C_n_inv = np.zeros(Nsamp)
-        
+
         for i in range(Nscans):
             start = cumlen[i]
             end = cumlen[i + 1]
@@ -840,7 +869,7 @@ class Destriper():
     
     def make_baseline_only(self):
         self.get_baselines()
-        self.baseline_tod = self.F.dot(self.a) 
+        #self.baseline_tod = self.F.dot(self.a) 
         #self.baseline_tod = self.tod.copy() 
 
     def get_hits(self):
@@ -962,18 +991,22 @@ class Destriper():
         tod_lens = tod_lens[::self.Nfeed]
 
         #outfile_path = self.infile_path + "baselines/"
-        outfile_path = self.infile_path + "all_in_one/"
+        #outfile_path = self.infile_path + "all_in_one/"
+        #outfile_path = self.infile_path + "batch_of_third2/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/highpass/002Hz/default/XL_dataset/co6/baselines/"
         #outfile_path = self.infile_path + "null_test/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/all_in_one/"
         
-        #print("Saveing baselines to:", outfile_path)
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/batch_of_third2/"
+        
+        print("Saveing baselines to:", outfile_path)
         if not os.path.exists(outfile_path):
             os.mkdir(outfile_path)
         
         for i in range(len(self.names)):
             start, stop = self.start_stop[:, i]
             baseline      = baseline_buffer[start:stop]
-
+            #print(start, stop)
             baseline = baseline.reshape(self.Nfeed, tod_lens[i])
          
             baseline = baseline.astype(np.float32)
@@ -986,48 +1019,84 @@ class Destriper():
                 outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[1]), dtype = "float32")
             
             data = outfile["tod_baseline"]
-            data[:-1, sb, freq, :] = baseline
+            if sb == 0 or sb == 2:
+                data[:-1, sb, -(freq + 1), :] = baseline
+            else:
+                data[:-1, sb, freq, :] = baseline
+
             outfile.close()
 
     def save_baseline_tod_per_batch(self):
         feed, sb, freq = self.feed, self.sb, self.freq
-        currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
+        #currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
+        currentNames, tod_lens = self.currentNames, self.tod_lens
         start_stop  = self.start_stop
         #tod_lens = self.tod_lens
 
         #outfile_path = self.infile_path + "splittest/"
         #outfile_path = self.infile_path + "splittest2/"
+        #outfile_path = self.infile_path + "feed_separated_all_in_one/"
         
-        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/splittest2/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/feed_separated_all_in_one/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
 
         #print("Saveing baselines to:", outfile_path)
         if not os.path.exists(outfile_path):
             os.mkdir(outfile_path)
+        
+        Nperbaselines = self.Nperbaselines[1:]
 
         for i in range(len(currentNames)):
-            #ti = time.time()
-            start, stop = start_stop[:, i]
+            alive = self.feeds_alive[currentNames[i]]
+            feed_idx = np.where(alive == feed)[0]
 
-            baseline      = baseline_buffer[start:stop]
-         
-            baseline = baseline.astype(np.float32)
-            
-            new_name = currentNames[i].split(".")
-            new_name = new_name[0] + "_temp." + new_name[1]
-            
-            outfile = h5py.File(outfile_path + new_name, "a")
-            if "tod_baseline" not in outfile.keys():
-                outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[0]), dtype = "float32")
-            
-            
-            data = outfile["tod_baseline"]
+            if feed_idx.size == 1:
+                amplitude = self.a[self.scan_per_baseline == currentNames[i]]
+                Nperbaseline = Nperbaselines[self.scan_per_baseline == currentNames[i]]
 
-            if data.shape[-1] != baseline.shape[-1]:
-                print("Wrong shape!", data.shape, baseline.shape, start, stop, stop - start, tod_lens[i], baseline_buffer[start:stop].shape, baseline_buffer.shape, i, len(self.currentNames), self.freq_idx)
+                new_name = currentNames[i].split(".")
+                new_name = new_name[0] + "_temp." + new_name[1]
                 
-            data[feed, sb, freq, :] = baseline
-            outfile.close()
-            #print("Save time iterration:", time.time() - ti, "sec")
+                outfile = h5py.File(outfile_path + new_name, "a")
+
+                if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
+                    outfile.create_dataset("amplitudes", (18, 4, 64, amplitude.shape[0]), dtype = "float32")
+                    outfile.create_dataset("Nperbaseline", (18, 4, 64, Nperbaseline.shape[0]), dtype = "float32")
+                
+                data_amplitudes = outfile["amplitudes"]
+                data_Nperbaseline = outfile["Nperbaseline"]
+
+                data_amplitudes[feed_idx[0], sb, freq, :] = amplitude
+                data_Nperbaseline[feed_idx[0], sb, freq, :] = Nperbaseline
+
+                outfile.close()
+
+                """ti = time.time()
+                start, stop = start_stop[:, i]
+
+                baseline      = baseline_buffer[start:stop]
+            
+                baseline = baseline.astype(np.float32)
+                
+                new_name = currentNames[i].split(".")
+                new_name = new_name[0] + "_temp." + new_name[1]
+                
+                outfile = h5py.File(outfile_path + new_name, "a")
+                if "tod_baseline" not in outfile.keys():
+                    outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[0]), dtype = "float32")
+                
+                data = outfile["tod_baseline"]
+
+                if data.shape[-1] != baseline.shape[-1]:
+                    print("Wrong shape!", data.shape, baseline.shape, start, stop, stop - start, tod_lens[i], baseline_buffer[start:stop].shape, baseline_buffer.shape, i, len(self.currentNames), self.freq_idx)
+            
+                data[feed_idx[0], sb, freq, :] = baseline
+                
+                outfile.close()"""
+                #print("Save time iterration:", time.time() - ti, "sec")
+            else:
+                continue
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"

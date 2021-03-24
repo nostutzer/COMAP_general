@@ -22,11 +22,11 @@ t = time.time()
 destr = Destriper()
 
 if destr.perform_split:
-    freq_idx = range(18 * 4 * 64)
-    #freq_idx = [264, 338]
+    freq_idx = range(19 * 4 * 64)
+    #freq_idx = [0]
 else:
     freq_idx = range(4 * 64)
-
+    #freq_idx = [0]
 
 t0 = time.time()
 
@@ -56,7 +56,7 @@ def dummy(idx):
         destr.N_batch_per_freq = destr.unique_batches.shape[0]
         
         destr.batch_buffer = [[] for i in range(destr.N_batch_per_freq)]
-        
+
         for i in range(destr.N_batch_per_freq):
             #print(destr.split_scans[current_batch_def == destr.unique_batches[i]])
             destr.currentNames = destr.names[current_batch_def == destr.unique_batches[i]]
@@ -83,16 +83,20 @@ def dummy(idx):
                     
                     destr.save_baseline_tod_per_batch(outitem[0], outitem[1], outitem[2], outitem[3])"""
     else:        
-        #if baseline_tod.shape[0] * 4 * 64 >= 2147483647:
-        #print((destr.sb, destr.freq, baseline_tod))
-        #destr.save_baseline_tod_per_freq(destr.sb, destr.freq, destr.baseline_tod)
+        destr.run(freq_idx = idx)
+
+        destr.make_baseline_only()
+        
+
         initem = [destr.sb, destr.freq, destr.baseline_tod]
-        dummy.q.put(initem)
-        dummy.iterr.value += 1
-        print("Frequency loop progress: ", dummy.iterr.value / 256 * 100, "%")
-        #return [destr.sb, destr.freq, baseline_tod]
-        #else:
-        #    return baseline_tod
+        dummy.q.put(initem)        
+
+        if not dummy.q.empty():
+            with dummy.lock:
+                outitem = dummy.q.get()
+                print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
+                destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
+
     return None
 
 def dummy_init(q, lock, iterr):
