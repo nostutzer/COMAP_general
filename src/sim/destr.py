@@ -1,5 +1,5 @@
 import numpy as np 
-from scipy.sparse import csc_matrix, identity, diags
+from scipy.sparse import csc_matrix, csr_matrix, identity, diags
 import sparse_dot_mkl
 import scipy.sparse.linalg as linalg
 from scipy import signal
@@ -53,6 +53,7 @@ class Destriper():
         
         self.counter = 0
         self.counter2 = 0
+        self.get_xy()
 
     def input(self):
         """
@@ -211,7 +212,6 @@ class Destriper():
         print("Use mask:", self.masking)
         print("Number of frequency loop processes:", self.Nproc)
 
-
         if self.perform_split:
             print("Perform split:", self.perform_split)
             print("Accept data_folder: ", accpt_data_path)
@@ -219,8 +219,12 @@ class Destriper():
             print("Split ID: ", split_id)
             print("Split data file:", self.acceptfile_name)
             print("Split def file:", self.split_def)
+            
+            print("\nReading split definition file:")
             self.read_split_def()
+            print("\nReading split data file:")
             self.read_split_data()
+            print("\nFinding feeds that are alive:")
             self.read_feeds_alive()
             
             
@@ -233,15 +237,18 @@ class Destriper():
         else: 
             self.freq_idx = freq_idx
             if self.perform_split:
+                #t0 = time.time()
                 feed, sb, freq = self.all_idx[:, freq_idx]
                 self.feed, self.sb, self.freq = feed, sb, freq
+                #print("Get freq idx time:", time.time() - t0, "sec")
             else:    
                 sb, freq = self.all_idx[:, freq_idx]
                 self.sb, self.freq = sb, freq
 
         if self.perform_split:
+            #t0 = time.time()
             self.get_split_data()
-            #print("Get P and F:"); t0 = time.time()
+            #print("Get split data time:", time.time() - t0); t0 = time.time()
             self.initialize_P_and_F()
             #print("Get P and F time:", time.time() - t0, "sec")
         else:
@@ -250,12 +257,12 @@ class Destriper():
             self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
         if self.masking:
-            #print("Get pointing:");t0 = time.time()
+            t0 = time.time()
             self.get_P()
             #print("Get pointing time:", time.time() - t0, "sec")
 
         #print("Get C_n_inv:")
-        t0 = time.time()
+        #t0 = time.time()
         self.sigma0_inv = 1 / self.sigma0
         self.sigma0_inv[self.mask == 0] = 0
         
@@ -265,18 +272,24 @@ class Destriper():
         #print("Get PCP_inv:")
         t0 = time.time()
         self.get_PCP_inv()
-        #print("Get PCP_inv time:", time.time() - t0, "sec")
+       # print("Get PCP_inv time:", time.time() - t0, "sec")
         
     def read_feeds_alive(self):
         feeds_alive = {}
-        
-        for filename in os.listdir(self.infile_path):
-            if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
-                infile = h5py.File(self.infile_path + filename, "r")
-                feeds  = infile["pixels"][()]
-                feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
-                infile.close()
-
+        itr = 0
+        #for filename in os.listdir(self.infile_path):
+        #print(len(self.split_scans))
+        #sys.exit()
+        for scan in self.split_scans:
+            #if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
+            #infile = h5py.File(self.infile_path + filename, "r")
+            filename = f"{self.patch_name}_0{scan:08}.h5"
+            infile = h5py.File(self.infile_path + filename, "r")
+            feeds  = infile["pixels"][()]
+            feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
+            infile.close()
+            itr += 1
+            #print(itr, self.all_scans)
         self.feeds_alive = feeds_alive
 
     def read_split_def(self):
@@ -310,7 +323,7 @@ class Destriper():
         split_def_file.close()
 
     def read_split_data(self):
-        
+        #print("Get split data:")
         with h5py.File(self.acceptfile_name, "r") as split_file:
             split_list  = split_file["jk_list"][()]
             split_scans = split_file["scan_list"][()] 
@@ -325,7 +338,7 @@ class Destriper():
             self.splits[i, x, y, z] = 1
             split_list[x, y, z] -= 2 ** i
 
-        self.n_split -= self.n_test + self.n_ctrl
+        #self.n_split -= self.n_test + self.n_ctrl
 
         self.Nbatch = 2 ** self.n_split
         
@@ -334,19 +347,30 @@ class Destriper():
         Nscans    = 0
         t = time.time()
         file_list = os.listdir(self.infile_path)
-            
-        for scan in self.scanIDs:
-            for filename in file_list:
-                if scan in filename and len(filename) < 17:
-                    #print(scan, filename)
-                    Nscans += 1
-                    infile = h5py.File(self.infile_path + filename, "r")
-                    tod_shape  = infile["tod"].shape
-                    Nfeed, Nsb, Nfreq, Nsamp = tod_shape
-                    Nfeed  -= 1
-                    tod_lens.append(Nsamp)
-                    names.append(filename)
-                    infile.close()
+        print("Shuffling scans:")
+        #print(self.all_scans)
+        #print(self.split_scans)
+        #print(f"{self.patch_name}_0{self.split_scans[0]}.h5")
+        #print(f"{self.patch_name}_0{self.split_scans[0]:08}.h5")
+        
+        for scan in self.split_scans:
+            #for filename in file_list:
+                #if scan in filename and len(filename) < 17:
+            #if f"{self.patch_name}_0{scan}.h5" in file_list:
+                    #if filename != f"{self.patch_name}_0{scan}.h5":
+                #print(f"{self.patch_name}_0{scan}.h5" )
+
+            Nscans += 1
+            #infile = h5py.File(self.infile_path + f"{self.patch_name}_0{scan}.h5", "r")
+            infile = h5py.File(self.infile_path + f"{self.patch_name}_0{scan:08}.h5", "r")
+            tod_shape  = infile["tod"].shape
+            Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+            Nfeed  -= 1
+            tod_lens.append(Nsamp)
+            names.append(f"{self.patch_name}_0{scan:08}.h5")
+            infile.close()
+            print(Nscans, self.all_scans)
+
         names = np.array(names)
         tod_lens = np.array(tod_lens)
         
@@ -359,12 +383,15 @@ class Destriper():
         self.split_scans = self.split_scans[scan_idx]
         self.Nscans = Nscans
 
+        print("Defining batches:")
         exp_of_two = 2 ** np.arange(self.n_split)
         self.batch_def = np.sum(self.splits * exp_of_two[:, np.newaxis, np.newaxis, np.newaxis], axis = 0)
 
     def get_split_data(self):
         currentNames, feed, sb, freq = self.currentNames, self.feed, self.sb, self.freq
         N_in_batch = len(currentNames)
+        #print("IN BATCH:", N_in_batch)
+        #sys.exit()
        
         tod_lens  = []
 
@@ -402,10 +429,10 @@ class Destriper():
         excess = tod_lens - Nperbaseline * Nbaseline
 
         Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0)
-        
+        #print("N baselines:", Nbaseline_tot, Nperbaseline)
         Nperbaselines = [0]
         scan_per_baseline = []
-        tu = time.time()
+        #tu = time.time()
         for i in range(N_in_batch):
             Nbaseline_in_scan = 0
             for j in range(Nbaseline[i]):
@@ -416,7 +443,7 @@ class Destriper():
                 Nperbaselines.append(excess[i])
                 scan_per_baseline.append(currentNames[i])
                 Nbaseline_in_scan += 1
-
+        #print("Double loop time:", time.time() - tu)
         self.ra  = np.zeros(Nsamp_tot, dtype = np.float32)
         self.dec = np.zeros(Nsamp_tot, dtype = np.float32)
         self.tod = np.zeros(Nsamp_tot, dtype = np.float32)
@@ -425,9 +452,8 @@ class Destriper():
         self.mask   = np.zeros(N_in_batch, dtype = np.uint8)
         
         self.start_stop = np.zeros((2, N_in_batch), dtype = int)
-        
+
         for i in range(N_in_batch):
-            #ti = time.time()
             name   = currentNames[i]
             
             alive = self.feeds_alive[name]
@@ -441,17 +467,18 @@ class Destriper():
                 self.start_stop[0, i] = start
                 self.start_stop[1, i] = end
                 infile = h5py.File(self.infile_path + name, "r")
+                #ti = time.time()
 
                 self.mask[i]        = infile["freqmask"][feed_idx, sb, freq]
                 self.sigma0[i]      = infile["sigma0"][feed_idx, sb, freq]
-                self.tod[start:end] = infile["tod"][feed_idx, sb, freq, :] #[()]#.astype(dtype=np.float32, copy=False) 
+                self.tod[start:end] = infile["tod"][feed_idx, sb, freq, :] 
                 self.ra[start:end]  = infile["point_cel"][feed_idx, :, 0] 
                 self.dec[start:end] = infile["point_cel"][feed_idx, :, 1] 
                 infile.close()
+                #print("Loading scan: ", i, " / ", N_in_batch, ", ", name, ", Time:", time.time() - ti)
             else:
                 #print("Passing this feed idx", feed_idx, feed)
                 continue
-            #print("Loading scan: ", i, " / ", N_in_batch, ", ", name, ", Time:", time.time() - ti)
         
         self.dt = dt
         self.Nbaseline    = Nbaseline_tot
@@ -629,14 +656,14 @@ class Destriper():
         #print("Get F time:", time.time() - t0, "sec")
         
     def get_xy(self):
-        Nside, dpix, fieldcent, ra, dec = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec
+        Nside, dpix, fieldcent = self.Nside, self.dpix, self.fieldcent
         
         #self.outfile = self.map_out_path + f"{self.patch_name}_{self.out_name}"         
         #print(self.outfile)
         
         x = np.zeros(Nside)
         y = np.zeros(Nside)
-        dx = dpix / np.cos(np.radians(fieldcent[1]))
+        dx = dpix / np.abs(np.cos(np.radians(fieldcent[1])))
         dy = dpix 
         
         if Nside % 2 == 0:
@@ -658,7 +685,6 @@ class Destriper():
         self.dx, self.dy = dx, dy
         
     def get_px_index(self):
-        self.get_xy()
         Nside, dpix, fieldcent, ra, dec, dx, dy = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec, self.dx, self.dy
         
         #self.px = WCS.ang2pix([Nside, Nside], [-dpix, dpix], fieldcent, dec, ra)
@@ -667,7 +693,14 @@ class Destriper():
         #for i in range(self.Nsamp):
         self.px = np.round((ra - ra_min) / dx) * Nside + np.round((dec - dec_min) / dy)
         self.px = self.px.astype(int)
-        
+        #print("PX:", np.nanmax(self.px), np.nanmin(self.px), self.Npix)
+        #print("DX:", dx, dy, ra_min, dec_min)
+        #print("X:", np.nanmax(ra), np.nanmin(ra))
+        #print("Y:", np.nanmax(dec), np.nanmin(dec))
+        #print("WHERE0:", ra[self.px == np.nanmax(self.px)], ra[self.px == np.nanmin(self.px)])
+        #print("WHERE1:", dec[self.px == np.nanmax(self.px)], dec[self.px == np.nanmin(self.px)])
+        #sys.exit()
+
     def get_P(self):
         Nsamp, Npix, Nscans, cumlen, mask = self.Nsamp, self.Npix, self.Nscans, self.tod_cumlen, self.mask
 
@@ -681,11 +714,26 @@ class Destriper():
                 hits[start:end] = mask[i]
         rows = np.arange(0, Nsamp, 1)
         cols = self.px    
+        
         if np.any(cols < 0):
-            cols[cols < 0] = 0    
+            #print("Pix below 0 or above Npix!", "Min:", np.nanmin(cols), "Max:", np.nanmax(cols))
+            #print("Hits at cols < 0:", hits[cols < 0])
+            #print("Hits at cols < 0:", hits[cols >= Npix])
+            #print("NaNs:", np.any(np.isnan(cols)), np.any(np.isinf(cols)))
+            hits[cols < 0] = 0    
+            cols[cols < 0] = 0   
+
+            #print("Any", np.any(cols < 0), np.any(cols >= Npix))
+        if np.any(cols >= Npix):
+            hits[cols >= Npix] = 0    
+            cols[cols >= Npix] = 0
         
+        if np.all(cols == 0):
+            print("All hits = 0!")
+            sys.exit()
         #print("Filling P1:", time.time() - tt, "sec");tt = time.time()
-        
+        #print("DIM:", hits.shape, rows.shape, cols.shape, np.any(cols >= Npix), np.any(cols < 0), np.nanmax(cols), np.nanmin(cols))
+        #sys.exit()
         self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix), dtype = np.uint8)
         #print("Filling P2:", time.time() - tt, "sec");tt = time.time()
         self.PT = csc_matrix(self.P.T, dtype = np.uint8)
@@ -759,7 +807,7 @@ class Destriper():
         
         #print(a)
         #print("CG counter: ", self.counter)
-        self.counter += 1
+        self.counter += 1 
         
         if np.any(np.isnan(a)) or np.any(np.isinf(a)):
             print("NaN or Inf in template vector a!", " All NaN or Inf:", np.all(np.isnan(a)), np.all(np.isinf(a)), "Freq:", self.sb, self.freq, np.any(np.isnan(temp0)), np.any(np.isnan(temp1)), np.any(np.isnan(temp2)))
@@ -779,6 +827,23 @@ class Destriper():
             sys.exit()
         return temp0 - temp2
 
+    def get_preconditioner(self):
+        Nbaseline = self.Nbaseline
+        precon = np.zeros((Nbaseline))
+        precon += self.FT_C_F.diagonal()
+        
+        temp = csr_matrix(self.FT_C_P_PCP)
+        
+        for i in range(Nbaseline):
+            diag_elem = temp.getrow(i).dot(self.PT_C_F.getcol(i)).data
+           
+            if diag_elem.size > 0:
+                precon[i] += diag_elem[0]
+        
+        precon[precon != 0] = 1 / precon[precon != 0]
+
+        self.preconditioner = diags(precon)
+
     def get_baselines(self):
         self.get_FT_C()
         self.get_FT_C_P_PCP()
@@ -786,17 +851,20 @@ class Destriper():
         
         self.FT_C_F = self.FT_C.dot(self.F)
         self.PT_C_F = self.PT_C.dot(self.F)
-
+        #t0 = time.time()
         Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax)
         b  = self.b(self.tod)
-        
+        #print("Get Ax and b time:", time.time() - t0, "sec")
+        #t0 = time.time()
+        self.get_preconditioner()
+        #print("Get preconditioner time:", time.time() - t0, "sec")
+        #t0 = time.time()
         #print("Initializing CG:")
-        self.a, info = linalg.cg(Ax, b)
-        #print("CG final count: ", self.counter)
+        self.a, info = linalg.cg(Ax, b, M = self.preconditioner)
+        #print("CG final count: ", self.counter, time.time() - t0, "sec")
         
         self.counter = 0
         self.counter2 = 0
-
     
     def get_destriped_map(self):
         #P, PT, C_n_inv, F, tod, Nsamp, eps, PCP_inv = self.P, self.PT, self.C_n_inv, self.F, self.tod, self.Nsamp, self.eps, self.PCP_inv
@@ -1026,7 +1094,7 @@ class Destriper():
 
             outfile.close()
 
-    def save_baseline_tod_per_batch(self):
+    def save_baseline_tod_per_batch(self, lock):
         feed, sb, freq = self.feed, self.sb, self.freq
         #currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
         currentNames, tod_lens = self.currentNames, self.tod_lens
@@ -1039,7 +1107,10 @@ class Destriper():
         
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/splittest2/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/feed_separated_all_in_one/"
-        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield2/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield3/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
 
         #print("Saveing baselines to:", outfile_path)
         if not os.path.exists(outfile_path):
@@ -1049,6 +1120,7 @@ class Destriper():
 
         for i in range(len(currentNames)):
             alive = self.feeds_alive[currentNames[i]]
+            N_alive = alive.shape[0]
             feed_idx = np.where(alive == feed)[0]
 
             if feed_idx.size == 1:
@@ -1057,20 +1129,20 @@ class Destriper():
 
                 new_name = currentNames[i].split(".")
                 new_name = new_name[0] + "_temp." + new_name[1]
-                
-                outfile = h5py.File(outfile_path + new_name, "a")
+                with lock:
+                    outfile = h5py.File(outfile_path + new_name, "a")
 
-                if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
-                    outfile.create_dataset("amplitudes", (18, 4, 64, amplitude.shape[0]), dtype = "float32")
-                    outfile.create_dataset("Nperbaseline", (18, 4, 64, Nperbaseline.shape[0]), dtype = "float32")
-                
-                data_amplitudes = outfile["amplitudes"]
-                data_Nperbaseline = outfile["Nperbaseline"]
+                    if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
+                        outfile.create_dataset("amplitudes", data = np.zeros((N_alive, 4, 64, amplitude.shape[0]), dtype = np.float32), dtype = "float32")
+                        outfile.create_dataset("Nperbaseline", data = np.zeros((N_alive, 4, 64, Nperbaseline.shape[0]), dtype = np.float32), dtype = "float32")
+                    
+                    data_amplitudes = outfile["amplitudes"]
+                    data_Nperbaseline = outfile["Nperbaseline"]
 
-                data_amplitudes[feed_idx[0], sb, freq, :] = amplitude
-                data_Nperbaseline[feed_idx[0], sb, freq, :] = Nperbaseline
+                    data_amplitudes[feed_idx[0], sb, freq, :] = amplitude
+                    data_Nperbaseline[feed_idx[0], sb, freq, :] = Nperbaseline
 
-                outfile.close()
+                    outfile.close()
 
                 """ti = time.time()
                 start, stop = start_stop[:, i]
@@ -1097,6 +1169,54 @@ class Destriper():
                 #print("Save time iterration:", time.time() - ti, "sec")
             else:
                 continue
+
+    
+    def save_from_queue(self, queue):
+        
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield4/"
+        
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+        
+        itr = 0
+        N_queue = queue.qsize()
+        while not queue.empty():
+            if (itr / N_queue) % 10 == 0:
+                print("Remaining elements in saver queue:", queue.qsize()) 
+                
+            outitem = queue.get()
+            feed, sb, freq, currentNames, start_stop, a, Nperbaselines, scan_per_baseline = outitem
+            
+            Nperbaselines = Nperbaselines[1:]
+
+            for i in range(len(currentNames)):
+                alive = self.feeds_alive[currentNames[i]]
+                N_alive = alive.shape[0]
+                feed_idx = np.where(alive == feed)[0]
+
+                if feed_idx.size == 1:
+                    amplitude = a[scan_per_baseline == currentNames[i]]
+                    Nperbaseline = Nperbaselines[scan_per_baseline == currentNames[i]]
+
+                    new_name = currentNames[i].split(".")
+                    new_name = new_name[0] + "_temp." + new_name[1]
+                    outfile = h5py.File(outfile_path + new_name, "a")
+
+                    if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
+                        outfile.create_dataset("amplitudes", data = np.zeros((N_alive, 4, 64, amplitude.shape[0]), dtype = np.float32), dtype = "float32")
+                        outfile.create_dataset("Nperbaseline", data = np.zeros((N_alive, 4, 64, Nperbaseline.shape[0]), dtype = np.float32), dtype = "float32")
+                        
+                    data_amplitudes = outfile["amplitudes"]
+                    data_Nperbaseline = outfile["Nperbaseline"]
+
+                    data_amplitudes[feed_idx[0], sb, freq, :] = amplitude
+                    data_Nperbaseline[feed_idx[0], sb, freq, :] = Nperbaseline
+
+                    outfile.close()
+
+                    #print("Save time iterration:", time.time() - ti, "sec")
+                else:
+                    continue
 
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"

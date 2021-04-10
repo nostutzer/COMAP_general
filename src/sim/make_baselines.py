@@ -23,7 +23,8 @@ destr = Destriper()
 
 if destr.perform_split:
     freq_idx = range(19 * 4 * 64)
-    #freq_idx = [0]
+    #freq_idx = [1, 10]
+    #freq_idx = [19 * 4 * 64 - 3, 19 * 4 * 64 - 2, 19 * 4 * 64 - 1]
 else:
     freq_idx = range(4 * 64)
     #freq_idx = [0]
@@ -43,10 +44,6 @@ def dummy(idx):
     #print("\n", "Processing frequency number:", idx, "\n")
     t = time.time()
 
-    with dummy.lock:
-        print("Frequency loop progress: ",  dummy.iterr.value, "/", len(freq_idx), "|", round(dummy.iterr.value / len(freq_idx) * 100, 4), "%")
-        dummy.iterr.value += 1
-
     if destr.perform_split:
         feed, sb, freq = destr.all_idx[:, idx]
         feed, sb, freq = int(feed), int(sb), int(freq)
@@ -59,22 +56,30 @@ def dummy(idx):
 
         for i in range(destr.N_batch_per_freq):
             #print(destr.split_scans[current_batch_def == destr.unique_batches[i]])
+            ti = time.time()
+        
             destr.currentNames = destr.names[current_batch_def == destr.unique_batches[i]]
+            #print("Get batch names:", time.time() - td, "sec")
             #td = time.time()
             destr.run(feed, sb, freq)
-            #print("Run time: ", time.time() - td, "sec")
+            #print("Run func time: ", time.time() - td, "sec")
 
-            #print("Destriping batch:", i); td = time.time()
+            #td = time.time()
+            
             destr.make_baseline_only()
             #print("Destriper time:", time.time() - td, "sec")
             #names  = destr.currentNames
             #start_stop = destr.start_stop
-            #initem = [feed, sb, freq, names, start_stop, destr.baseline_tod]
+            #initem = [feed, sb, freq, destr.currentNames, destr.start_stop, destr.a, destr.Nperbaselines, destr.scan_per_baseline]
             
             #dummy.q.put(initem)
-            with dummy.lock:
-                destr.save_baseline_tod_per_batch()
-
+            t_before = time.time() - ti
+            #td = time.time()
+            #with dummy.lock:
+            destr.save_baseline_tod_per_batch(dummy.lock)
+            #print("Save batch time:", time.time() - td, "sec")
+        
+            print("Batch loop time:", time.time() - ti, "sec", "Before Saver time:", t_before, "sec", "N batches:", destr.N_batch_per_freq, "N In Batch:", len(destr.currentNames))
             """if not dummy.q.empty():
                 with dummy.lock:
                     outitem = dummy.q.get()
@@ -97,6 +102,10 @@ def dummy(idx):
                 print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
                 destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
 
+    with dummy.lock:
+        print("Frequency loop progress: ",  dummy.iterr.value, "/", len(freq_idx), "|", round(dummy.iterr.value / len(freq_idx) * 100, 4), "%")
+        dummy.iterr.value += 1
+
     return None
 
 def dummy_init(q, lock, iterr):
@@ -105,6 +114,11 @@ def dummy_init(q, lock, iterr):
     dummy.iterr = iterr
 
 def dummy_save():
+    print("Initializing saver:")
+    destr.save_from_queue(dummy.q, iter)
+    print("Finalize saver:")
+    
+    """
     with dummy.lock:
         #print("Inside saver")
         
@@ -112,19 +126,22 @@ def dummy_save():
             outitem = dummy.q.get()
             #destr.save_baseline_tod_per_freq(outitem[0], outitem[1], outitem[2])
             print("Saving baselines for sb and freq number:", outitem[0], outitem[1])
-
+    """
 m = multiproc.Manager()
 q = m.Queue()
 lock = m.Lock()
 iterr = multiproc.Value("i", 0)
 
 with multiproc.Pool(destr.Nproc, dummy_init, [q, lock, iterr]) as pool:
-    #pool.apply_async(dummy_save)
     baselines = pool.map(dummy, freq_idx)
+    #pool.apply_async(dummy_save)
 
 pool.close()
 pool.join()
+
 print("Finished frequency loop:", time.time() - t0, "sec")
+#destr.save_from_queue(q)
+
 
 #baselines = np.array(baselines)
 #baselines = baselines[:, 0, :]
