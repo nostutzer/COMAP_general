@@ -277,20 +277,63 @@ class Destriper():
     def read_feeds_alive(self):
         feeds_alive = {}
         itr = 0
+        tod_lens  = []
         #for filename in os.listdir(self.infile_path):
-        #print(len(self.split_scans))
-        #sys.exit()
+        print(len(self.split_scans))
         for scan in self.split_scans:
-            #if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
-            #infile = h5py.File(self.infile_path + filename, "r")
+            
             filename = f"{self.patch_name}_0{scan:08}.h5"
             infile = h5py.File(self.infile_path + filename, "r")
+            
             feeds  = infile["pixels"][()]
             feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
+            
+            tod_shape  = infile["tod"].shape
+            Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+            Nfeed  -= 1
+            tod_lens.append(Nsamp)
+
             infile.close()
             itr += 1
-            #print(itr, self.all_scans)
+
         self.feeds_alive = feeds_alive
+        print("Hallo")
+
+        tod_lens = np.array(tod_lens)
+         
+        # Computing the length of each baseline
+        infile = h5py.File(self.infile_path + filename, "r")
+        tod_time   = infile["time"][:2] * 3600 * 24
+        infile.close()
+       
+        dt    = tod_time[1] - tod_time[0]
+
+        Nperbaseline = int(round(self.baseline_time / dt))
+
+        Nbaseline = np.floor(tod_lens / Nperbaseline).astype(int)
+
+        excess = tod_lens - Nperbaseline * Nbaseline
+
+        Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0)
+
+        #self.a_buffer = np.zeros((20, 4, 64, Nbaseline_tot), dtype = np.float32)
+        name_buffer   = []
+        #print("N baselines:", Nbaseline_tot, Nperbaseline)
+        Nperbaselines = [0]
+        #tu = time.time()
+        for i, scan in enumerate(self.split_scans):
+            filename = f"{self.patch_name}_0{scan:08}.h5"
+            Nbaseline_in_scan = 0
+            for j in range(Nbaseline[i]):
+                Nperbaselines.append(Nperbaseline)
+                name_buffer.append(filename)
+
+            if excess[i] > 0:
+                Nperbaselines.append(excess[i])
+                name_buffer.append(filename)
+
+        self.N_buffer = np.array(Nperbaselines[1:])
+        self.name_buffer = np.array(name_buffer)        
 
     def read_split_def(self):
         split_names = []
@@ -667,12 +710,12 @@ class Destriper():
         dy = dpix 
         
         if Nside % 2 == 0:
-            x_min = fieldcent[0] - dx * Nside / 2 
-            y_min = fieldcent[1] - dy * Nside / 2  
+            x_min = fieldcent[0] - dx * Nside / 2.0 
+            y_min = fieldcent[1] - dy * Nside / 2.0  
             
         else: 
-            x_min = fieldcent[0] - dx * Nside / 2 - dx / 2
-            y_min = fieldcent[1] - dy * Nside / 2  - dy / 2
+            x_min = fieldcent[0] - dx * Nside / 2.0 - dx / 2.0
+            y_min = fieldcent[1] - dy * Nside / 2.0  - dy / 2.0
             
         x[0] = x_min + dx / 2
         y[0] = y_min + dy / 2
@@ -689,17 +732,19 @@ class Destriper():
         
         #self.px = WCS.ang2pix([Nside, Nside], [-dpix, dpix], fieldcent, dec, ra)
         ra_min, dec_min = self.x[0], self.y[0]
+        ra_max, dec_max = self.x[-1], self.y[-1]
         #self.px = np.zeros(self.Nsamp)
         #for i in range(self.Nsamp):
         self.px = np.round((ra - ra_min) / dx) * Nside + np.round((dec - dec_min) / dy)
         self.px = self.px.astype(int)
-        #print("PX:", np.nanmax(self.px), np.nanmin(self.px), self.Npix)
-        #print("DX:", dx, dy, ra_min, dec_min)
-        #print("X:", np.nanmax(ra), np.nanmin(ra))
-        #print("Y:", np.nanmax(dec), np.nanmin(dec))
-        #print("WHERE0:", ra[self.px == np.nanmax(self.px)], ra[self.px == np.nanmin(self.px)])
-        #print("WHERE1:", dec[self.px == np.nanmax(self.px)], dec[self.px == np.nanmin(self.px)])
-        #sys.exit()
+        """print("PX:", np.nanmax(self.px), np.nanmin(self.px), self.Npix)
+        print("DX:", dx, dy)
+        print("X:", np.nanmax(ra), ra_max, np.nanmin(ra), ra_min)
+        print("Y:", np.nanmax(dec), dec_max, np.nanmin(dec), dec_min)
+        print("WHERE0:", ra[self.px >= self.Npix], ra[self.px < 0])
+        print("WHERE1:", dec[self.px >= self.Npix], dec[self.px < 0])
+        print("LEN:", np.sum(self.px >= self.Npix), np.sum(self.px < 0), self.ra.shape)
+        sys.exit()"""
 
     def get_P(self):
         Nsamp, Npix, Nscans, cumlen, mask = self.Nsamp, self.Npix, self.Nscans, self.tod_cumlen, self.mask
@@ -715,10 +760,13 @@ class Destriper():
         rows = np.arange(0, Nsamp, 1)
         cols = self.px    
         
+        #print("Hits at cols < 0:", np.any(hits[cols < 0] > 0))
+        #print("Hits at cols >= Npix:", np.any(hits[cols >= Npix] > 0))
+        
         if np.any(cols < 0):
             #print("Pix below 0 or above Npix!", "Min:", np.nanmin(cols), "Max:", np.nanmax(cols))
-            #print("Hits at cols < 0:", hits[cols < 0])
-            #print("Hits at cols < 0:", hits[cols >= Npix])
+            #print("Hits at cols < 0:", np.any(hits[cols < 0] > 0))
+            #print("Hits at cols < 0:", np.any(hits[cols >= Npix] > 0))
             #print("NaNs:", np.any(np.isnan(cols)), np.any(np.isinf(cols)))
             hits[cols < 0] = 0    
             cols[cols < 0] = 0   
@@ -728,9 +776,10 @@ class Destriper():
             hits[cols >= Npix] = 0    
             cols[cols >= Npix] = 0
         
-        if np.all(cols == 0):
-            print("All hits = 0!")
-            sys.exit()
+        #if np.all(cols == 0):
+        #    print("All hits = 0!")
+            #sys.exit()
+        
         #print("Filling P1:", time.time() - tt, "sec");tt = time.time()
         #print("DIM:", hits.shape, rows.shape, cols.shape, np.any(cols >= Npix), np.any(cols < 0), np.nanmax(cols), np.nanmin(cols))
         #sys.exit()
@@ -855,14 +904,15 @@ class Destriper():
         Ax = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ax)
         b  = self.b(self.tod)
         #print("Get Ax and b time:", time.time() - t0, "sec")
-        #t0 = time.time()
+        t0 = time.time()
         self.get_preconditioner()
         #print("Get preconditioner time:", time.time() - t0, "sec")
         #t0 = time.time()
         #print("Initializing CG:")
         self.a, info = linalg.cg(Ax, b, M = self.preconditioner)
-        #print("CG final count: ", self.counter, time.time() - t0, "sec")
-        
+        #self.a, info = linalg.cg(Ax, b)
+        print("CG final count: ", self.counter, time.time() - t0, "sec")
+        #print(self.a.astype(np.float32)[0], self.a[0])
         self.counter = 0
         self.counter2 = 0
     
@@ -1108,8 +1158,9 @@ class Destriper():
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/splittest2/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/feed_separated_all_in_one/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield/"
-        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield2/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield2/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield3/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield4/"
         #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
 
         #print("Saveing baselines to:", outfile_path)
@@ -1218,6 +1269,61 @@ class Destriper():
                 else:
                     continue
 
+
+
+
+    def save_baselines_from_buffer(self):
+        #currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
+        names = self.name_buffer
+        #tod_lens = self.tod_lens
+
+        #outfile_path = self.infile_path + "splittest/"
+        #outfile_path = self.infile_path + "splittest2/"
+        #outfile_path = self.infile_path + "feed_separated_all_in_one/"
+        
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/splittest2/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/feed_separated_all_in_one/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield2/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield3/"
+        outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield4/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/wopreconditioner/"
+        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
+
+        print("Saveing baselines to:", outfile_path)
+        if not os.path.exists(outfile_path):
+            os.mkdir(outfile_path)
+        
+        for i in range(len(self.names)):
+            currentName = self.names[i]
+            alive = self.feeds_alive[currentName]
+            N_alive = alive.shape[0]
+
+            amplitude = self.a_buffer[..., self.name_buffer == currentName].astype(np.float32)
+            Nperbaseline = self.N_buffer[self.name_buffer == currentName].astype(np.int32)
+
+            new_name = currentName.split(".")
+            new_name = new_name[0] + "_temp." + new_name[1]
+
+            outfile = h5py.File(outfile_path + new_name, "a")
+
+            if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
+                outfile.create_dataset("amplitudes", data = np.zeros((N_alive, 4, 64, amplitude.shape[-1]), dtype = np.float32), dtype = "float32")
+                outfile.create_dataset("Nperbaseline", data = np.zeros((Nperbaseline.shape[0],), dtype = np.int32), dtype = "int32")
+            
+            data_amplitudes = outfile["amplitudes"]
+            data_Nperbaseline = outfile["Nperbaseline"]
+            
+            for feed in range(20):
+                feed_idx = np.where(alive == feed)[0]
+                if feed_idx.size == 1:
+                    data_amplitudes[feed_idx[0], ...] = amplitude[feed_idx[0], ...]
+                    data_Nperbaseline[:] = Nperbaseline
+            outfile.close()
+
+                #print("Save time iterration:", time.time() - ti, "sec")
+
+    
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
     #paramfile = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_test_co6.txt"
