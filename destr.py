@@ -1,5 +1,5 @@
 import numpy as np 
-from scipy.sparse import csc_matrix, csr_matrix, identity, diags
+from scipy.sparse import csc_matrix, identity, diags
 import sparse_dot_mkl
 import scipy.sparse.linalg as linalg
 from scipy import signal
@@ -16,7 +16,6 @@ import os
 import re
 import argparse
 import warnings
-import random
 
 warnings.filterwarnings("ignore", category=RuntimeWarning) #ignore warnings caused by weights cut-off
 
@@ -36,6 +35,7 @@ class Destriper():
         obsID_map : bool, optional
             Whether to perform mapmaking per obsID, by default False
         """
+
         self.obsID_map  = obsID_map 
         self.eps        = eps
         self.param_file = param_file 
@@ -60,13 +60,9 @@ class Destriper():
         
         self.dpix   = 2.0 / 60.0        # Pixel resolution in degrees (2' = 2/60 deg)
         
-        self.cube_filename = "/mn/stornext/d16/cmbco/comap/protodir/cube_real.npy"        
-        
-        self.get_xy()       # Precompute RA/Dec pixel grid
 
     def input(self):
-        """
-        Function parsing the command line input.
+        """Function parsing the command line input.
         """
         parser = argparse.ArgumentParser()
         parser.add_argument("-p", "--param", type = str, default = None,
@@ -103,8 +99,7 @@ class Destriper():
         self.outfile_path = str(outfile_path.group(1))                          
         
         mapname = re.search(r"\nMAP_NAME\s*=\s*'([0-9A-Za-z\_]*)'", params)   # Defining regex pattern to search for name of output map file.
-        self.map_name = str(mapname.group(1))                    
-
+        self.map_name = str(mapname.group(1))                                 
         
         scanIDs = re.findall(r"\s\d{8}\s", runlist)         # Regex pattern to find all scanIDs in runlist
         self.scanIDs = [num.strip() for num in scanIDs]
@@ -144,9 +139,11 @@ class Destriper():
         perform_split = re.search(r"\nUSE_ACCEPT\s*=\s*(.true.|.false.)", params)  # Regex pattern to search for whether to define split batches. 
         self.perform_split = perform_split.group(1)
         
+        
+        
         if self.perform_split == ".true.":
             self.perform_split = True 
-            self.scheme = "baseline_only"
+            self.scheme = "baselines"
         else:
             self.perform_split = False 
         
@@ -171,7 +168,7 @@ class Destriper():
             self.split_def = str(split_def.group(1))                                
 
 
-            idx_feed = np.arange(19, dtype = int)   # All feed indices
+            idx_feed = np.arange(20, dtype = int)   # All feed indices
             idx_sb   = np.arange(4,  dtype = int)   # All sideband indices
             idx_freq = np.arange(64, dtype = int)   # All frequency channel indices
  
@@ -193,8 +190,6 @@ class Destriper():
         
         runlist_file.close()    
         param_file.close()
-
-
 
         if self.verbose:
             print("Patch def:", self.patch_def_path)
@@ -225,7 +220,6 @@ class Destriper():
                 print("Split ID: ", split_id)
                 print("Split data file:", self.acceptfile_name)
                 print("Split def file:", self.split_def)
-            
             self.read_split_def()
             self.read_split_data()
             self.read_feeds_alive()
@@ -246,8 +240,8 @@ class Destriper():
             Index of flattened [20 (feeds), 4 (sb), 64 (freqs)] array., by default None
         """
         if self.verbose:
-            t0 = time.time()
-        
+            t0 = time.time() 
+    
         """Defining the current feed, sb and freq indices."""
         if freq_idx == None:
             self.feed = feed
@@ -263,79 +257,36 @@ class Destriper():
                 self.sb, self.freq = sb, freq
 
         if self.perform_split:
-            self.get_split_data()   # Import data for current split batch.
-            self.initialize_P_and_F()
+            self.get_split_data()       # Import data for current split batch.
+            self.initialize_P_and_F()   
         else:
             """ Get tod, sigma and mask data from buffer"""
             self.tod    = self.tod_buffer.reshape(self.Nsamp, 4, 64)[:, sb, freq] 
             self.sigma0 = self.sigma0_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq]
             self.mask   = self.mask_buffer.reshape(self.Nscans, 4, 64)[:, sb, freq] 
 
-        self.get_P()        # Get pointing matrix
+        self.get_P()                    # Get pointing matrix
 
         self.sigma0_inv = 1 / self.sigma0
-        self.sigma0_inv[self.mask == 0] = 0
-        self.get_Cn_inv()                   # Get inverse white noise co-variance matrix
-       
-        self.get_PCP_inv()      # Compute (P^T C^-1 P)^-1 matrix
+        self.sigma0_inv[self.mask == 0] = 0     
+        self.get_Cn_inv()                    # Get inverse white noise co-variance matrix   
+
+        self.get_PCP_inv()                  # Compute (P^T C^-1 P)^-1 matrix
         
     def read_feeds_alive(self):
         """Reading in all the feeds alive for each scanID in the runlist provided.
         """
-        feeds_alive = {}    # Empty dictionary to save filename and feeds that are alive.
-        tod_lens  = []      # Possible values of level 2 file feed list, i.e. infile["pixels"].
-
-        for scan in self.split_scans:
-            
-            filename = f"{self.patch_name}_0{scan:08}.h5"
-            infile = h5py.File(self.infile_path + filename, "r")
-            
-            feeds  = infile["pixels"][()]
-            feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
-            
-            tod_shape  = infile["tod"].shape
-            Nfeed, Nsb, Nfreq, Nsamp = tod_shape
-            Nfeed  -= 1
-            tod_lens.append(Nsamp)                  # Saving length of scan
-
-            infile.close()
+        feeds_alive = {}            # Empty dictionary to save filename and feeds that are alive.
+        all_feeds   = range(1, 21)  # Possible values of level 2 file feed list, i.e. infile["pixels"].
+        
+        for filename in os.listdir(self.infile_path):
+            if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
+                infile = h5py.File(self.infile_path + filename, "r")
+                feeds  = infile["pixels"][()]
+                feeds_alive[filename] = feeds - 1       # Translating base 1 to base 0 indexing
+                infile.close()
 
         self.feeds_alive = feeds_alive
-
-        tod_lens = np.array(tod_lens)           # Array of TOD scan lengths
-         
-        """ Computing the length of each baselines """
-
-        infile = h5py.File(self.infile_path + filename, "r")
-        tod_time   = infile["time"][:2] * 3600 * 24
-        infile.close()
-       
-        dt    = tod_time[1] - tod_time[0]
-
-        Nperbaseline = int(round(self.baseline_time / dt))      # Number of samples per baseline
-
-        Nbaseline = np.floor(tod_lens / Nperbaseline).astype(int)   # Number of baselines
-
-        excess = tod_lens - Nperbaseline * Nbaseline            # Excess baseline lengths
-
-        Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0) # Total number of baselines
-
-        name_buffer   = []      # Buffer for file names
-        Nperbaselines = [0]     # Array of samples per baseline
-
-        for i, scan in enumerate(self.split_scans):
-            filename = f"{self.patch_name}_0{scan:08}.h5"
-            Nbaseline_in_scan = 0
-            for j in range(Nbaseline[i]):
-                Nperbaselines.append(Nperbaseline)
-                name_buffer.append(filename)
-
-            if excess[i] > 0:
-                Nperbaselines.append(excess[i])
-                name_buffer.append(filename)
-
-        self.N_buffer = np.array(Nperbaselines[1:])
-        self.name_buffer = np.array(name_buffer)        
 
     def read_split_def(self):
         """Function to read split definition file.
@@ -378,16 +329,16 @@ class Destriper():
             split_scans = split_file["scan_list"][()] 
         split_file.close()
 
-        self.split_scans = split_scans              # Scan ID list from split data file
+        self.split_scans = split_scans  # Scan ID list from split data file
         self.all_scans, nfeed, nsb = split_list.shape   # number of scans, feeds and sidebands from split data file
         self.splits = np.zeros((self.n_split, self.all_scans, nfeed, nsb))  # Generating and filling self.split with bits borresponding to binary index of batch.
-       
+    
         for i in range(self.n_split):
             x, y, z = np.where(split_list > 2 ** i)
             self.splits[i, x, y, z] = 1
             split_list[x, y, z] -= 2 ** i
 
-        #self.n_split -= self.n_test + self.n_ctrl  # Updating number of splits
+        self.n_split -= self.n_test + self.n_ctrl   # Updating number of splits
 
         self.Nbatch = 2 ** self.n_split # Number of total possible independent split batches
         
@@ -397,17 +348,18 @@ class Destriper():
         Nscans    = 0
         t = time.time()
         file_list = os.listdir(self.infile_path)
-        
-        for scan in self.split_scans:
-            Nscans += 1
-            infile = h5py.File(self.infile_path + f"{self.patch_name}_0{scan:08}.h5", "r")
-            tod_shape  = infile["tod"].shape
-            Nfeed, Nsb, Nfreq, Nsamp = tod_shape
-            Nfeed  -= 1
-            tod_lens.append(Nsamp)
-            names.append(f"{self.patch_name}_0{scan:08}.h5")
-            infile.close()
-
+            
+        for scan in self.scanIDs:
+            for filename in file_list:
+                if scan in filename and len(filename) < 17:
+                    Nscans += 1
+                    infile = h5py.File(self.infile_path + filename, "r")
+                    tod_shape  = infile["tod"].shape
+                    Nfeed, Nsb, Nfreq, Nsamp = tod_shape
+                    Nfeed  -= 1
+                    tod_lens.append(Nsamp)
+                    names.append(filename)
+                    infile.close()
         names = np.array(names)
         tod_lens = np.array(tod_lens)
         
@@ -420,9 +372,6 @@ class Destriper():
         self.split_scans = self.split_scans[scan_idx]
         self.Nscans = Nscans
 
-        if self.verbose:
-            print("Defining batches:")
-
         """Translating to binary to decimal index, defining the batches."""
         exp_of_two = 2 ** np.arange(self.n_split)
         self.batch_def = np.sum(self.splits * exp_of_two[:, np.newaxis, np.newaxis, np.newaxis], axis = 0)
@@ -432,13 +381,12 @@ class Destriper():
         """
         currentNames, feed, sb, freq = self.currentNames, self.feed, self.sb, self.freq
         N_in_batch = len(currentNames)  # Number of scans in current split batch
-               
-        tod_lens  = []  # Lengths of all the scans included in batch
+       
+        tod_lens  = [] # Lengths of all the scans included in batch
 
         """Reading the number of elements in each scan to be included in batch."""
         for i in range(N_in_batch):
             filename = currentNames[i]
-
             infile = h5py.File(self.infile_path + filename, "r")
             tod_shape  = infile["tod"].shape
             Nfeed, Nsb, Nfreq, Nsamp = tod_shape
@@ -449,16 +397,15 @@ class Destriper():
         self.Nsb   = Nsb
         self.Nfreq = Nfreq
 
-
         tod_lens = np.array(tod_lens)
         self.tod_lens = tod_lens
         tod_cumlen = np.zeros(N_in_batch + 1).astype(int)   # Cumulative length of the scans
         tod_cumlen[1:] = np.cumsum(tod_lens).astype(int)
         Nsamp_tot = np.sum(tod_lens)                        # Total number of time samples in batch
     
-        """ Computing the length of each baseline """
-        infile = h5py.File(self.infile_path + currentNames[0], "r")
-        tod_time   = infile["time"][:2] * 3600 * 24                 # MJD array in seconds
+        # Computing the length of each baseline
+        infile = h5py.File(self.infile_path + currentNames[0], "r") 
+        tod_time   = infile["time"][:2] * 3600 * 24                 # MJD array
         infile.close()
        
         dt    = tod_time[1] - tod_time[0]                           # Temporal resolution.
@@ -471,19 +418,14 @@ class Destriper():
 
         Nbaseline_tot = np.sum(Nbaseline) + np.sum(excess != 0)     # Total number of baselines, both of full and partial length. 
 
-         """Filling list with number of elements in each baseline."""
+        """Filling list with number of elements in each baseline."""
         Nperbaselines = [0]
-        scan_per_baseline = []
+        tu = time.time()
         for i in range(N_in_batch):
-            Nbaseline_in_scan = 0
             for j in range(Nbaseline[i]):
                 Nperbaselines.append(Nperbaseline)
-                scan_per_baseline.append(currentNames[i])
-                Nbaseline_in_scan += 1
             if excess[i] > 0:
                 Nperbaselines.append(excess[i])
-                scan_per_baseline.append(currentNames[i])
-                Nbaseline_in_scan += 1
 
         """Reading in all needed data for destriping the split batch"""
         self.ra  = np.zeros(Nsamp_tot, dtype = np.float32)              # Array of RA coordinate
@@ -496,25 +438,24 @@ class Destriper():
         self.start_stop = np.zeros((2, N_in_batch), dtype = int)        # Cumulative start and stop indices for each scan.
         
         for i in range(N_in_batch):
-            name   = currentNames[i]        # Filenames of current batch
-            
-            alive = self.feeds_alive[name]          # Number of feeds that are alive
+            name   = currentNames[i]
 
-            feed_idx  = np.where(alive == feed)[0]  # Generating correct feed index
+            alive = self.feeds_alive[name]              # Generating correct feed index
+            feed_idx  = np.where( alive == feed)[0]
 
-            if feed_idx.size == 1:  
+            if feed_idx.size == 1 and alive[feed_idx] != 19:
                 start = tod_cumlen[i]
                 end   = tod_cumlen[(i + 1)]
                 self.start_stop[0, i] = start
                 self.start_stop[1, i] = end
-               
+
                 infile = h5py.File(self.infile_path + name, "r")
 
-                self.mask[i]        = infile["freqmask"][feed_idx, sb, freq]
-                self.sigma0[i]      = infile["sigma0"][feed_idx, sb, freq]
-                self.tod[start:end] = infile["tod"][feed_idx, sb, freq, :] 
-                self.ra[start:end]  = infile["point_cel"][feed_idx, :, 0] 
-                self.dec[start:end] = infile["point_cel"][feed_idx, :, 1] 
+                self.mask[i]        = infile["freqmask"][feed, sb, freq]
+                self.sigma0[i]      = infile["sigma0"][feed, sb, freq]
+                self.tod[start:end] = infile["tod"][feed, sb, freq, :]  
+                self.ra[start:end]  = infile["point_cel"][feed, :, 0] 
+                self.dec[start:end] = infile["point_cel"][feed, :, 1] 
                 infile.close()
             else:
                 if self.verbose:
@@ -527,24 +468,19 @@ class Destriper():
         self.Nsamp        = Nsamp_tot
         self.Nscans       = N_in_batch
         self.tod_cumlen   = tod_cumlen
-        self.scan_per_baseline = np.array(scan_per_baseline) # Names of scans for each baseline
 
     def get_data(self):
         """Function reading all data from runlist to buffer array. 
           All feeds are listed up sequentially to form a 
           Nfeed times Nsamples long time-stream.  
         """
-        tod_lens  = []  # Lengths of all the scans included
-        names     = []  # Names of all input level 2 files
-        Nscans    = 0   # Number of scans
+
+        tod_lens  = []     # Lengths of all the scans included
+        names     = []     # Names of all input level 2 files
+        Nscans    = 0      # Number of scans
 
         """Reading number of time samples, feeds, sb and freqs per scan"""
-
-        files = os.listdir(self.infile_path)    
-        random.shuffle(files)                   # Shuffling scans
-
-     
-        for filename in files:
+        for filename in os.listdir(self.infile_path):
             if np.any([(name in filename and len(filename) < 17) for name in self.scanIDs]):
                 Nscans += 1
                 infile = h5py.File(self.infile_path + filename, "r")
@@ -559,10 +495,10 @@ class Destriper():
         self.Nfeed = Nfeed  # Number of feeds
         self.Nsb = Nsb      # Number of sidebands
         self.Nfreq = Nfreq  # Number of frequency channels
-        self.names = names
+        self.names = names  
 
-        infile = h5py.File(self.infile_path + names[1], "r")    
-        freq       = infile["nu"][0, ...]                        # Frequency array
+        infile = h5py.File(self.infile_path + names[1], "r")
+        freq       = infile["nu"][0, ...]                       # Frequency array
         freq[0, :] = freq[0, ::-1]
         freq[2, :] = freq[2, ::-1]   
         self.Freq  = freq
@@ -571,7 +507,6 @@ class Destriper():
         if self.verbose:
             print("Number of scans to load:", Nscans)
         
-
         tod_lens = np.array(tod_lens)
         self.tod_lens = tod_lens
         tod_cumlen = np.zeros(Nscans * Nfeed + 1).astype(int)
@@ -580,6 +515,7 @@ class Destriper():
     
         self.tod_buffer = np.zeros((Nsamp_tot, Nsb, Nfreq), dtype = np.float32) # TOD buffer array
        
+        #time_buffer = np.zeros(Nsamp_tot)
         self.ra = np.zeros(Nsamp_tot, dtype = np.float32)     # RA coordinate buffer array
         self.dec = np.zeros(Nsamp_tot, dtype = np.float32)    # Dec coordinate buffer array
 
@@ -590,8 +526,9 @@ class Destriper():
         Nperbaselines = [0]     # Number of elements per baseline
         Nperscan      = [0]     # Number of elements per scan
 
-
         self.start_stop = np.zeros((2, Nscans), dtype = int)    # Cumulative start and stop indices per scan
+
+        """Filling buffers with imported data"""
         
         for i in range(Nscans):
             infile = h5py.File(self.infile_path + names[i], "r")
@@ -619,6 +556,7 @@ class Destriper():
             ra        = infile["point_cel"][:-1, :, 0] 
             dec       = infile["point_cel"][:-1, :, 1] 
             
+
             Nsamp = tod.shape[-1] 
             Nperscan.append(Nsamp)
             dt    = tod_time[1] - tod_time[0]
@@ -674,26 +612,29 @@ class Destriper():
         self.get_px_index() # Get pixel index of pointing information.
 
         self.get_F()        # Get baseline template matrix
-     
+        
     def get_xy(self):
         """Function defining the pixel grid of the target field.
         """
         Nside, dpix, fieldcent = self.Nside, self.dpix, self.fieldcent
         
+        #self.outfile = self.map_out_path + f"{self.patch_name}_{self.out_name}"         
+        #print(self.outfile)
+        
         x = np.zeros(Nside)
         y = np.zeros(Nside)
-        dx = dpix / np.abs(np.cos(np.radians(fieldcent[1])))
+        dx = dpix / np.cos(np.radians(fieldcent[1]))
         dy = dpix 
         
         """Min values in RA/Dec. directions"""
         if Nside % 2 == 0:
-            x_min = fieldcent[0] - dx * Nside / 2.0 
-            y_min = fieldcent[1] - dy * Nside / 2.0  
+            x_min = fieldcent[0] - dx * Nside / 2 
+            y_min = fieldcent[1] - dy * Nside / 2  
             
         else: 
-            x_min = fieldcent[0] - dx * Nside / 2.0 - dx / 2.0
-            y_min = fieldcent[1] - dy * Nside / 2.0  - dy / 2.0
-            
+            x_min = fieldcent[0] - dx * Nside / 2 - dx / 2
+            y_min = fieldcent[1] - dy * Nside / 2  - dy / 2
+        
         """Defining pixel centers"""
 
         x[0] = x_min + dx / 2
@@ -706,17 +647,19 @@ class Destriper():
         self.x, self.y = x, y       # Pixel RA/Dec coordinates
         self.dx, self.dy = dx, dy   # Pixel resolution
 
-        
     def get_px_index(self):
         """Funtion defining the pixel index for a given RA/Dec telescope pointing coordinate.
         """
+
+        self.get_xy()   # Define pixel grid
+
         Nside, dpix, fieldcent, ra, dec, dx, dy = self.Nside, self.dpix, self.fieldcent, self.ra, self.dec, self.dx, self.dy
         
-        ra_min, dec_min = self.x[0], self.y[0]
+        ra_min, dec_min = self.x[0], self.y[0]  
 
-        self.px = np.round((ra - ra_min) / dx) * Nside + np.round((dec - dec_min) / dy)
+        self.px = np.round((ra - ra_min) / dx) * Nside + np.round((dec - dec_min) / dy) # Pixel coordinates
         self.px = self.px.astype(int)
-
+        
     def get_P(self):
         """Function that sets up pointing matrix from telescope pointing information.
            Each time sample that its pixel i at time j is assigned P_ij = 1. 
@@ -725,28 +668,20 @@ class Destriper():
         """
         Nsamp, Npix, Nscans, cumlen, mask = self.Nsamp, self.Npix, self.Nscans, self.tod_cumlen, self.mask
 
-        tt = time.time()
 
-        hits = np.ones(Nsamp)       # The 1s inside P
-        if self.masking:
-            for i in range(Nscans):
-                start = cumlen[i]
-                end = cumlen[i + 1]
-                hits[start:end] = mask[i]   # If masked P_ij = 0
+        hits = np.ones(Nsamp)      # The 1s inside P 
+        for i in range(Nscans):
+            start = cumlen[i]
+            end = cumlen[i + 1]
+            hits[start:end] = mask[i]   # If masked P_ij = 0
 
         rows = np.arange(0, Nsamp, 1)   # Row indices for sparse elements corresponding to all time samples
         cols = self.px                  # Col indices for sparse elements corresponding to pixel indices
+
+        if np.any(cols < 0):            # If pixel index is negative the sample is masked
+            hits[cols < 0] = 0
+            cols[cols < 0] = 0    
         
-        """If pixels outside of grid they are masked"""
-
-        if np.any(cols < 0):
-            hits[cols < 0] = 0    
-            cols[cols < 0] = 0   
-
-        if np.any(cols >= Npix):
-            hits[cols >= Npix] = 0    
-            cols[cols >= Npix] = 0
-
         self.P = csc_matrix((hits, (rows, cols)), shape = (Nsamp, Npix), dtype = np.uint8)  # Setting up sparse matrices for pointing
         self.PT = csc_matrix(self.P.T, dtype = np.uint8)
         
@@ -759,14 +694,14 @@ class Destriper():
         Nperbaselines_cum = np.zeros(Nbaseline + 1)
         Nperbaselines_cum = np.cumsum(Nperbaselines) # Cumulative number of elements per baseline
         
-        ones = np.ones(Nsamp)
+        ones = np.ones(Nsamp)               
         rows = np.arange(0, Nsamp, 1)
         cols = np.zeros(Nsamp)
 
         for i in range(Nbaseline):
             start = Nperbaselines_cum[i]
             end = Nperbaselines_cum[i + 1]
-            cols[start:end] = np.tile(i, Nperbaselines[i + 1])  # Computing column index of each baseline
+            cols[start:end] = np.tile(i, Nperbaselines[i + 1])      # Computing column index of each baseline
         
         self.F = csc_matrix((ones, (rows, cols)), shape = (Nsamp, Nbaseline), dtype = np.uint8) # Setting up sparse matrices for template matrix
         self.FT = csc_matrix(self.F.T, dtype = np.uint8)
@@ -777,7 +712,7 @@ class Destriper():
         """
         Nsamp, Nscans, cumlen = self.Nsamp, self.Nscans, self.tod_cumlen
         C_n_inv = np.zeros(Nsamp)
-
+        
         for i in range(Nscans):
             start = cumlen[i]
             end = cumlen[i + 1]
@@ -785,14 +720,14 @@ class Destriper():
 
         self.C_n_inv = diags(C_n_inv)   # Setting up diagonal matrix with inverse white noise variance from each scan.
     
-    def get_PCP_inv(self):
+    def get_PCP_inv(self):        
         """Function computing (P^T C_n^-1 P)^-1, and setting up corresponding sparse matrix.
            Matrix has shape Npixel vs Npixel.
-        """        
+        """
         PCP_inv = self.PT.dot(self.C_n_inv)        
         PCP_inv = PCP_inv.dot(self.P) + diags(self.eps * np.ones(self.Npix))
            
-        self.PCP_inv = diags(1 / PCP_inv.diagonal(), format = "csc", dtype = np.float32)
+        self.PCP_inv = diags(1 / PCP_inv.diagonal(), format = "csc", dtype = np.float32) # Setting up diagonal matrix on column major format
    
     def get_FT_C_P_PCP(self):
         """Function computing matrix product F^T C_n^-1 P (P^T C_n^-1 P)^-1.
@@ -807,6 +742,7 @@ class Destriper():
         """Function computing matrix product P^T C_n^-1.
            Matrix has shape Npixel vs Nsamp.
         """
+        
         self.PT_C = self.PT.dot(self.C_n_inv)
         
     def get_FT_C(self):
@@ -863,34 +799,13 @@ class Destriper():
 
         return temp0 - temp2
 
-    def get_preconditioner(self):
-        """Function computing the inverse diagonal of matrix 
-           M = (F^T C_n^-1 F - F^T C_n^-1 P (P^T C_n^-1 P)^-1 P^T C_n^-1 F)
-           for faster convergence of CG solver.
-        """
-        Nbaseline = self.Nbaseline
-        precon = np.zeros((Nbaseline))
-        precon += self.FT_C_F.diagonal()
-        
-        temp = csr_matrix(self.FT_C_P_PCP)
-        
-        for i in range(Nbaseline):
-            diag_elem = temp.getrow(i).dot(self.PT_C_F.getcol(i)).data
-           
-            if diag_elem.size > 0:
-                precon[i] += diag_elem[0]
-        
-        precon[precon != 0] = 1 / precon[precon != 0]
-
-        self.preconditioner = diags(precon)
-
     def get_baselines(self):
         """Function computing the baseline fit only for the time-stream by solving 
            the destriper equation Ma = x, i.e.
            (F^T C_n^-1 F - F^T C_n^-1 P (P^T C_n^-1 P)^-1 P^T C_n^-1 F) a = (F^T C_n^-1  - F^T C_n^-1 P (P^T C_n^-1 P)^-1 P^T C_n^-1) x,
            where a is the baseline amplitude vector and x is the TOD.
         """
-        
+
         self.get_FT_C()         # Compute needed matrix products
         self.get_FT_C_P_PCP()
         self.get_PT_C()
@@ -900,14 +815,12 @@ class Destriper():
 
         Ma = linalg.LinearOperator((self.Nbaseline, self.Nbaseline) , matvec = self.Ma) # Defining linear operator from self.Ma since full matrix M is not representable
         d  = self.d(self.tod)
-
+        
         if self.verbose: 
             print("Initializing CG:")
+        
+        self.a, info = linalg.cg(Ma, d)     # Computing best fit baseline amplitudes with conjugate gradient method.
 
-        self.get_preconditioner() # Compute preconditioner matrix M
-        
-        self.a, info = linalg.cg(Ma, d, M = self.preconditioner) # Computing best fit baseline amplitudes with conjugate gradient method.
-        
         if self.verbose:
             print("CG final count: ", self.counter)
         
@@ -982,9 +895,10 @@ class Destriper():
         """Function computing TOD baseline fit only
         """
         self.get_baselines()
+        self.baseline_tod = self.F.dot(self.a) 
 
     def get_hits(self):
-       """Function computing hit map for a given
+        """Function computing hit map for a given
            frequency slice, i.e. the diagonal of the 
            vector P^T P.
         """
@@ -1139,70 +1053,58 @@ class Destriper():
                 outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[1]), dtype = "float32")
             
             data = outfile["tod_baseline"]
-            if sb == 0 or sb == 2:
-                data[:-1, sb, -(freq + 1), :] = baseline    # Scipping blind feed #19 (in base 0 indexing)
-            else:
-                data[:-1, sb, freq, :] = baseline           # Scipping blind feed #19 (in base 0 indexing)
-
+            data[:-1, sb, freq, :] = baseline               # Scipping blind feed #19 (in base 0 indexing)
             outfile.close()
 
-    def save_baselines_from_buffer(self):
-        """Function saving baseline amplitudes
-           and number of samples per baseline to
-           HDF5 file for compact storage.
+    def save_baseline_tod_per_batch(self):
+        """Function saving TOD baseline fit per
+           feed, sideband and frequency channel
+           for a given split batch to HDF5 file.
         """
-        names = self.name_buffer
-
-        #outfile_path = self.infile_path + "baselines/"
-        outfile_path = self.infile_path + "baselines/dummy/"
-
-        #outfile_path = self.infile_path + "splittest/"
-        #outfile_path = self.infile_path + "splittest2/"
-        #outfile_path = self.infile_path + "feed_separated_all_in_one/"
+        feed, sb, freq = self.feed, self.sb, self.freq
+        currentNames, tod_lens, baseline_buffer = self.currentNames, self.tod_lens, self.baseline_tod
+        start_stop  = self.start_stop
         
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/splittest2/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/feed_separated_all_in_one/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield2/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield3/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/fullfield4/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/wo_sim/highpass/002Hz/default/large_dataset/masked/baselines/wopreconditioner/"
-        #outfile_path = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim2/default/large_dataset/masked/co6/splittest3/"
+        outfile_path = self.infile_path + "baselines/"
 
         if self.verbose:
             print("Saveing baselines to:", outfile_path)
-        
+
         if not os.path.exists(outfile_path):            # If outfile path is not defined; make it.
             os.mkdir(outfile_path)
 
-        for i in range(len(self.names)):            # Looping over infile names and saving baselines.
-            currentName = self.names[i]
-            alive = self.feeds_alive[currentName]
-            N_alive = alive.shape[0]                # Number of feeds alive
+        for i in range(len(currentNames)):          # Looping over infile names and saving TOD baselines.
+            name   = currentNames[i]
 
-            amplitude = self.a_buffer[..., self.name_buffer == currentName].astype(np.float32)  # Get amplitudes from current scan
-            Nperbaseline = self.N_buffer[self.name_buffer == currentName].astype(np.int32)      # Get number of samples per baselines from current scan
+            alive = self.feeds_alive[name]          
+            feed_idx  = np.where( alive == feed)[0] # Generating correct feed index
 
-            new_name = currentName.split(".")
-            new_name = new_name[0] + "_temp." + new_name[1]
+            if feed_idx.size == 1 and alive[feed_idx] != 19:       
+                
+                start, stop = start_stop[:, i]
 
-            outfile = h5py.File(outfile_path + new_name, "a")
-
-            if "amplitudes" not in outfile.keys() and "Nperbaseline" not in outfile.keys():
-                outfile.create_dataset("amplitudes", data = np.zeros((N_alive, 4, 64, amplitude.shape[-1]), dtype = np.float32), dtype = "float32")
-                outfile.create_dataset("Nperbaseline", data = np.zeros((Nperbaseline.shape[0],), dtype = np.int32), dtype = "int32")
+                baseline      = baseline_buffer[start:stop]
             
-            data_amplitudes = outfile["amplitudes"]
-            data_Nperbaseline = outfile["Nperbaseline"]
-            
-            for feed in range(20):
-                feed_idx = np.where(alive == feed)[0]
-                if feed_idx.size == 1:
-                    data_amplitudes[feed_idx[0], ...] = amplitude[feed_idx[0], ...]
-                    data_Nperbaseline[:] = Nperbaseline
-            outfile.close()
+                baseline = baseline.astype(np.float32)
+                
+                new_name = name[i].split(".")
+                new_name = new_name[0] + "_temp." + new_name[1]
+                
+                outfile = h5py.File(outfile_path + new_name, "a")
+                if "tod_baseline" not in outfile.keys():
+                    outfile.create_dataset("tod_baseline", (18, 4, 64, baseline.shape[0]), dtype = "float32")
+                
+                data = outfile["tod_baseline"]
 
-    
+                if data.shape[-1] != baseline.shape[-1]:
+                    print("Wrong shape!", data.shape, baseline.shape, start, stop, stop - start, tod_lens[i], baseline_buffer[start:stop].shape, baseline_buffer.shape, i, len(self.currentNames), self.freq_idx)
+                    
+                data[feed_idx[0], sb, freq, :] = baseline
+                outfile.close()
+                
+            else:
+                continue
+
 if __name__ =="__main__":
     #datapath    = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/data/level2/Ka/sim/dynamicTsys/co6/"
     #paramfile = "/mn/stornext/d16/cmbco/comap/nils/COMAP_general/src/sim/Parameterfiles_and_runlists/param_destriper_test_co6.txt"
@@ -1313,6 +1215,146 @@ if __name__ =="__main__":
         
         print("Writing to file:")
         destr.write_map(full_map, full_hits, full_rms)    
+    
+    """
+    map         = np.ma.masked_where(full_hits < 1, full_map)
+    hits        = np.ma.masked_where(full_hits < 1, full_hits)
+    rms         = np.ma.masked_where(full_hits < 1, full_rms)
+
+    map = map[0, 0, :, :]
+    hits = hits[0, 0, :, :]
+    rms = rms[0, 0, :, :]
+
+    cmap_name = "CMRmap"
+    cmap = copy.copy(plt.get_cmap(cmap_name))
+    cmap.set_bad("0.8", 1)
+
+    fig0, ax0 = plt.subplots(figsize = (8, 7))
+
+
+    im0 = ax0.imshow(map * 1e6, cmap = cmap, vmin = -5000, vmax = 5000)
+    #im0 = ax0.imshow(hits, cmap = cmap)#, vmin = -5000, vmax = 5000)
+    #im0 = ax0.imshow(rms * 1e6, cmap = cmap, vmin = 0, vmax = 1e4)
+    im0.set_rasterized(True)
+    divider0 = make_axes_locatable(ax0)
+    cax0 = divider0.append_axes("right", size="5%", pad=0.05)
+    cbar0 = fig0.colorbar(im0, ax=ax0, cax = cax0)
+    ax0.set_title("Destriper")
+    cbar0.set_label(r"$\mu K$")
+    fig0.tight_layout()
+    plt.savefig("Destriper.png")
+    """
+    """
+    eps      = 0
+    freq_idx = range(4 * 64)
+        
+    for pfile in paramfiles:
+        t = time.time()
+        destr = Destriper(eps, param_file = pfile, obsID_map = True)
+        print("Loading data and initializing pointing:")
+        
+        map  = np.zeros((len(freq_idx), 120, 120, destr.nobsIDs))
+        hits = np.zeros((len(freq_idx), 120, 120, destr.nobsIDs))
+        rms  = np.zeros((len(freq_idx), 120, 120, destr.nobsIDs))
+        
+        print("Looping over obsIDs:")
+        tobs = time.time()
+        for i, ID in enumerate(destr.obsIDs):
+            t0 = time.time()
+            destr.obsID = ID
+            destr.get_data()
+            destr.initialize_P_and_F()
+            print("Loading time:", time.time() - t0, "sec")
+        
+            t0 = time.time()
+            print("Looping over frequencies:", destr.obsID)
+            
+            def dummy(idx):
+                #print("Processing frequency number:", idx, "\n")
+                destr.run(freq_idx = idx)
+                #destr.get_destriped_map()        
+                #destr.get_noise_weighted_map(True, 0.02)        
+                destr.make_map()
+                destr.get_rms()
+                destr.get_hits()
+                maps = np.array([destr.m, destr.rms, destr.hits])
+                maps = np.where(np.isnan(maps) == False, maps, 0)
+                return np.array([destr.m, destr.rms, destr.hits])
+
+            with multiproc.Pool(processes = 48) as pool:
+
+                obs_map = pool.map(dummy, freq_idx)
+            
+            pool.close()
+            pool.join()
+            
+            print("Finished frequency loop:", time.time() - t0, "sec")
+
+            print("Formating output:")
+        
+            obs_map = np.array(obs_map)
+        
+            map[..., i]  = obs_map[:, 0, :, :]
+            rms[..., i]  = obs_map[:, 1, :, :]
+            hits[..., i] = obs_map[:, 2, :, :]
+        
+        print(map.shape)
+        map  = map.reshape( 4, 64, 120, 120, destr.nobsIDs)
+        hits = hits.reshape(4, 64, 120, 120, destr.nobsIDs)
+        rms  = rms.reshape( 4, 64, 120, 120, destr.nobsIDs)
+
+        map         = np.ma.masked_where(hits < 1, map)
+        hits        = np.ma.masked_where(hits < 1, hits)
+        rms         = np.ma.masked_where(hits < 1, rms)
+        
+        map  = map.transpose(0, 1, 3, 2, 4)
+        hits = hits.transpose(0, 1, 3, 2, 4)
+        rms  = rms.transpose(0, 1, 3, 2, 4)
+
+        
+        var_inv = 1 / rms ** 2
+        
+        map = np.nansum(map * var_inv, axis = -1) / np.nansum(var_inv, axis = -1)     
+        rms = 1 / np.sqrt(np.nansum(var_inv, axis = -1))
+        hits = np.nansum(hits, axis = -1)
+        print("max, min of hits:", np.nanmax(hits), np.nanmin(hits))
+        
+        print(map.shape)
+    
+        print("Finished obsID loop:", time.time() - tobs, "sec")
+
+        map         = np.where(np.isnan(hits) == False, map, 0)
+        hits        = np.where(np.isnan(hits) == False, hits, 0)
+        rms         = np.where(np.isnan(hits) == False, rms, 0)
+        
+        print("Writing to file:")
+        destr.write_map(map, hits, rms)    
+
+    """        
+    """
+    map_obsID = map[0, 0, :, :]
+    hits_obsID = hits[0, 0, :, :]
+    rms_obsID = rms[0, 0, :, :]
+
+    cmap_name = "CMRmap"
+    cmap = copy.copy(plt.get_cmap(cmap_name))
+    cmap.set_bad("0.8", 1)
+    fig0, ax0 = plt.subplots(figsize = (8, 7))
+    
+    
+    im0 = ax0.imshow(map_obsID * 1e6, cmap = cmap, vmin = -5000, vmax = 5000)
+    #im0 = ax0.imshow(hits_obsID, cmap = cmap)#, vmin = -5000, vmax = 5000)
+    #im0 = ax0.imshow(rms_obsID * 1e6, cmap = cmap, vmin = 0, vmax = 1e4)
+    im0.set_rasterized(True)
+    divider0 = make_axes_locatable(ax0)
+    cax0 = divider0.append_axes("right", size="5%", pad=0.05)
+    cbar0 = fig0.colorbar(im0, ax=ax0, cax = cax0)
+    ax0.set_title("Destriper")
+    cbar0.set_label(r"$\mu K$")
+    fig0.tight_layout()
+    plt.savefig("DestriperObsID.png")
+    """
+
     
 
     
